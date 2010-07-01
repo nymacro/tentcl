@@ -1,7 +1,8 @@
 Tentcl is a small hand-parsed Tcl interpreter. This project was undertaken
 to better my understanding of the parsing and interpretation of programming
-languages. It is by no means complete, nor is it well-written -- as it is
-more of an exploratory project rather than something to use.
+languages. It is by no means complete, nor is it well-written -- it is more
+of a toy than something useful.
+
 
 For license details, see LICENSE
 
