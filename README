@@ -1,0 +1,14 @@
+Tentcl is a small hand-parsed Tcl interpreter. This project was undertaken
+to better my understanding of the parsing and interpretation of programming
+languages. It is by no means complete, nor is it well-written -- as it is
+more of an exploratory project rather than something to use.
+
+For license details, see LICENSE
+
+A Makefile is provided for building the project.
+
+Additional information can be found at nymacro.com and git.nymacro.com
+
+
+Aaron Marks
+nymacro AT gmail DOT com
