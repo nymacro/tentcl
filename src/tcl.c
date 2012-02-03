@@ -166,8 +166,9 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
     status = Tcl_funcall(vm, argv[0], argc, argv, ret);
     
     /* free arguments */
-    for (i = 0; i < argc; i++)
+    for (i = 0; i < argc; i++) {
         TclValue_delete(&argv[i]);
+    }
     
     free(argv);
     

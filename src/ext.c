@@ -13,6 +13,7 @@
 
 #include "common.h"
 
+static List lambdas;
 static List dlls;
 
 // THIS FUNCTION CONFLICTS WITH STANDARD TCL COMMAND
@@ -39,12 +40,14 @@ TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc != 3) {
         return TCL_EXCEPTION;
     }
-    char lambdaName[1024];
-    sprintf(lambdaName, "__lambda_%i", count);
+
+    char lambdaName[256];
+    snprintf(lambdaName, 255, "__lambda_%i", count);
+    lambdaName[255] = 0;
     count++;
 
     TclUserFunction *f = (TclUserFunction*)malloc(sizeof(TclUserFunction));
-    List_new(f->args);
+    f->args = List_malloc();
     Tcl_split(vm, argv[1], " \t\n", f->args);
 
     TclValue_new(&f->code, argv[2]);
@@ -53,6 +56,8 @@ TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     Tcl_register(vm, lambdaName, TclStd_userFuncall);
 
     TclValue_set(ret, lambdaName);
+
+    List_push(&lambdas, f);
 
     return TCL_OK;
 }
@@ -270,12 +275,20 @@ TclReturn TclStd_use(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     return TCL_OK;
 }
 
-void dllsDealloc(ListNode *node) {
+static void dllsDealloc(ListNode *node) {
+#ifdef WITH_LIBRARIES
     dlclose(node->data);
+#endif
+}
+
+static void lambdasDealloc(ListNode *node) {
+    TclUserFunction *f = (TclUserFunction*)node->data;
+    List_delete(f->args);
 }
 
 void TclExt_cleanup(void) {
     List_delete(&dlls);
+    List_delete(&lambdas);
 }
 
 void TclExt_register(Tcl *vm) {
@@ -295,6 +308,9 @@ void TclExt_register(Tcl *vm) {
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;
+
+    List_new(&lambdas);
+    lambdas.dealloc = lambdasDealloc;
 
     atexit(TclExt_cleanup);
 }

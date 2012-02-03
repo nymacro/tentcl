@@ -30,11 +30,11 @@ void TclStd_files_dealloc(HashPair *pair) {
 }
 
 void TclStd_functions_dealloc(BTreeNode *node) {
-    /* for some reason -- args is getting screwed... */
+    /* FIXME: for some reason -- args is getting screwed... */
     if (node->data) {
         TclUserFunction *fn = (TclUserFunction*)node->data;
         /*List_free(fn->args);*/
-        /*TclValue_delete(&fn->code);*/
+        TclValue_delete(&fn->code);
         free(node->data);
     }
 }
@@ -544,8 +544,7 @@ TclReturn TclStd_pwd(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         return TCL_EXCEPTION;
     }
     char cwd[1024];
-    getcwd(cwd, 1024);
-    if (cwd)
+    if (getcwd(cwd, 1024) != NULL)
         TclValue_set(ret, cwd);
     else
         return TCL_EXCEPTION;

@@ -35,6 +35,7 @@ void Hash_BTree_dealloc_(BTreeNode *node) {
     Hash *self = pair->self;
     self->dealloc(pair);
     free(pair->name);
+    free(pair);
 }
 
 void Hash_dealloc_(HashPair *pair) {

@@ -2,8 +2,8 @@
 LIBS+= -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
        -Llineread -llineread
 CFLAGS+= -Idstructs/src -Imathexpr/src -Ilineread/src \
-         -O0 -g -Wall \
-#		 -DWITH_LIBRARIES
+         -g -Wall \
+         -DWITH_LIBRARIES
 OBJECT= src/value.o \
         src/tcl.o src/std.o src/ext.o src/tclsh.o
 
