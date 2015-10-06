@@ -231,29 +231,31 @@ TclReturn TclStd_if(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (atoi(result)) {
         status = Tcl_eval(vm, argv[2], ret);
     } else {
-        if (strcmp(argv[3], "else") == 0) {
+        if (argc == 5 && strcmp(argv[3], "else") == 0) {
             status = Tcl_eval(vm, argv[4], ret);
-        } else {
+        } else if (argc == 4) {
             status = Tcl_eval(vm, argv[3], ret);
+        } else {
+            status = TCL_EXCEPTION;
         }
     }
     return status;
 }
 
-/*tcl: incr value ?ammount?
- * TODO: Fix this function. Should be 'incr varname ?ammount?'
- * Increments the value by ammount and returns it. If ammount is not specified
+/*tcl: incr value ?amount?
+ * TODO: Fix this function. Should be 'incr varname ?amount?'
+ * Increments the value by amount and returns it. If amount is not specified
  * the default value of 1 will be used.
  */
 TclReturn TclStd_incr(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
-    int ammount = 1;
+    int amount = 1;
     if (argc > 2) {
-        ammount = atoi(argv[2]);
+        amount = atoi(argv[2]);
     }
-    int val = atoi(argv[1]) + ammount;
+    int val = atoi(argv[1]) + amount;
     char tmp[64];
     snprintf(tmp, 64, "%i", val);
     TclValue_set(ret, tmp);

@@ -118,7 +118,7 @@ void List_insertBefore(List *list, ListNode *next, void *data) {
  */
 void List_add(List *list, void *data) {
     ListNode *p = list->head;
-    ListNode *prev;
+    ListNode *prev = NULL;
     while (p) {
         if (list->compare(p, data) < 0)
             break;

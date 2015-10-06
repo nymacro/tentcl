@@ -144,7 +144,8 @@ void repl(Tcl *vm, FILE *input) {
 		return;
 	}
     printf("-> %s\n", (ret == NULL || strlen(ret) == 0) ? "NULL" : ret);
-    
+    TclValue_delete(&ret);
+
     repl(vm, input);
 }
 
