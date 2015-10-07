@@ -27,7 +27,8 @@ static char *errorReturnStrings[] = {
     "(CONTINUE) continue exception raised",
     "(EXCEPTION) user exception raised",
     "(EXIT) exit exception raised",
-    "(BADCMD) invalid command exception raised"
+    "(BADCMD) invalid command exception raised",
+    "(OOM) out of memory"
 };
 
 /* Tcl_returnString
@@ -135,8 +136,7 @@ void Tcl_free(Tcl *self) {
  * Evaluate single Tcl expression
  */
 TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
-    TclReturn status;
-    status = TCL_OK;
+    TclReturn status = TCL_OK;
     
     TclValue_new(ret, NULL);
     
@@ -153,8 +153,13 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
     Tcl_split(vm, expression, " \t\n", list);
     
     int argc = List_size(list);
+    if (argc < 1) {
+        List_free(list);
+        return TCL_OK;
+    }
+
     TclValue *argv;
-    argv = (TclValue*)malloc(sizeof(TclValue*) * argc);
+    argv = (TclValue*)malloc(sizeof(TclValue) * argc);
     
     int i;
     for (i = 0; i < argc; i++) {
@@ -182,7 +187,13 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
 TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
     List *list = List_malloc();
     Tcl_split(vm, expression, "\n;", list);
-    TclReturn status;
+    TclReturn status = TCL_EXCEPTION;
+
+    if (List_size(list) < 1) {
+        TclValue_new(ret, NULL);
+        List_free(list);
+        return TCL_OK;
+    }
     
     int i;
     for (i = 0; i < List_size(list); i++) {
@@ -238,10 +249,9 @@ static char *Tcl_getKeyedValue_(Tcl *vm, char *str, char *key) {
     char *result = NULL;
     int i;
     
-    List *list;
-    list = List_malloc();
-    
+    List *list = List_malloc();
     Tcl_split(vm, str, " \t\n", list);
+
     for (i = 0; i < List_size(list); i += 2) {
         if (strcmp(List_index(list, i)->data, key) == 0) {
             if (i + 1 < List_size(list)) {
@@ -316,7 +326,9 @@ TclValue Tcl_expand(Tcl *vm, char *value) {
                 char *str = Tcl_substring_(value, i + 1, end);
                 TclValue eval;
                 status = Tcl_eval(vm, str, &eval);
-                TclValue_append(&result, eval);
+                if (status == TCL_OK) {
+                    TclValue_append(&result, eval);
+                }
                 free(str);
                 i = end;
             } else {

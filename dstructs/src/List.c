@@ -102,7 +102,7 @@ void List_insertBefore(List *list, ListNode *next, void *data) {
         List_push(list, data);
         return;
     }
-    ListNode *node = (ListNode*)malloc(sizeof(ListNode*));
+    ListNode *node = (ListNode*)malloc(sizeof(ListNode));
     node->next = next;
     if (!next->prev) {
         list->head = node;
@@ -141,12 +141,15 @@ void List_push(List *list, void *data) {
         list->head->next = NULL;
         list->alloc(list->head, data);
         list->tail = list->head;
-    } else {
+    } else if (list->tail) {
         list->tail->next = (ListNode*)malloc(sizeof(ListNode));
         list->tail->next->prev = list->tail;
         list->tail->next->next = NULL;
         list->alloc(list->tail->next, data);
         list->tail = list->tail->next;
+    } else {
+        fprintf(stderr, "fatal: list with no head or tail");
+        exit(1);
     }
 }
 

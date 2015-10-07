@@ -236,7 +236,7 @@ TclReturn TclStd_if(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         } else if (argc == 4) {
             status = Tcl_eval(vm, argv[3], ret);
         } else {
-            status = TCL_EXCEPTION;
+            // empty false case, do nothing
         }
     }
     return status;
@@ -301,7 +301,7 @@ TclReturn TclStd_while(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         return TCL_EXCEPTION;
     }
     
-    TclReturn status;
+    TclReturn status = TCL_EXCEPTION;
     
     while (1) {
         TclValue val = TclStd_expression(vm, argv[1]);
@@ -371,7 +371,7 @@ TclReturn TclStd_for(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * element's value and evaluating body.
  */
 TclReturn TclStd_foreach(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
-    TclReturn status;
+    TclReturn status = TCL_EXCEPTION;
     if (argc != 4) {
         return TCL_EXCEPTION;
     }

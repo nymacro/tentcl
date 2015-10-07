@@ -1,10 +1,14 @@
 proc test {test_name test_body} {
-    puts $test_name
+    puts "  $test_name"
     eval $test_body
 }
 
 proc assert {condition} {
     if {$condition} { } else { puts "failed condition $condition"; exit 1 }
+}
+
+proc fail {} {
+    exit 1
 }
 
 proc run {} {
@@ -13,6 +17,7 @@ proc run {} {
         puts "running $test"
         source $test
     }
+    puts "OK [llength $test_files] suites"
 }
 
 run
