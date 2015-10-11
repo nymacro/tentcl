@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Standard Function Library
- * Copyright (C) 2006-2008  Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
  */
 /*
  * TODO:
@@ -223,7 +223,7 @@ TclReturn TclStd_expr(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * clause is evaluated if it is provided.
  */
 TclReturn TclStd_if(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
-    TclReturn status;
+    TclReturn status = TCL_OK;
     if (argc < 3) {
         return TCL_EXCEPTION;
     }

@@ -2,7 +2,12 @@ OBJS=src/BTree.o src/Hash.o src/List.o src/SkipList.o src/Vector.o src/EString.o
 LIBFILE=libdstructs.a
 CFLAGS=-g
 
+.PHONY: all test clean
+
 all: $(OBJS) $(LIBFILE)
+
+test: all
+	make -C test all test
 
 .c.o:
 	$(CC) -c -o $@ $< $(CFLAGS)
@@ -12,4 +17,5 @@ $(LIBFILE):
 
 clean:
 	-rm $(OBJS) $(LIBFILE)
+	-make -C test clean
 

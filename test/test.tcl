@@ -8,6 +8,7 @@ proc assert {condition} {
 }
 
 proc fail {} {
+    puts stderr "failed test"
     exit 1
 }
 

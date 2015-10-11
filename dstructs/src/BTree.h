@@ -1,6 +1,6 @@
 /*
  * dstructs -- Binary Tree
- * Copyright (C) 2006-2008  Aaron Marks
+ * Copyright (C) 2006-2015 Aaron Marks
  */
 #ifndef DSTRUCTS_BTREE_H
 #define DSTRUCTS_BTREE_H

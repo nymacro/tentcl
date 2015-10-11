@@ -1,6 +1,6 @@
 /*
  * dstructs -- Expandable String
- * Copyright (C) 2006-2008  Aaron Marks
+ * Copyright (C) 2006-2015 Aaron Marks
  */
 #ifndef DSTRUCTS_ESTRING_H
 #define DSTRUCTS_ESTRING_H

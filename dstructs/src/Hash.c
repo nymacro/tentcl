@@ -1,6 +1,6 @@
 /*
  * dstructs -- Name/Value HashKey (Hash)
- * Copyright (C) 2006-2008  Aaron Marks
+ * Copyright (C) 2006-2015 Aaron Marks
  */
 #include "Hash.h"
 #include <string.h>

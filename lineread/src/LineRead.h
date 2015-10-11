@@ -1,6 +1,6 @@
 /*
  * lineread
- * Copyright (C) 2008 Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2008-2015 Aaron Marks. All Rights Reserved.
  */
 #ifndef LINEREAD_H
 #define LINEREAD_H

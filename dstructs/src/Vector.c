@@ -1,6 +1,6 @@
 /*
  * dstructs -- "Vector"
- * Copyright (C) 2006-2008  Aaron Marks
+ * Copyright (C) 2006-2015 Aaron Marks
  */
 #include "Vector.h"
 

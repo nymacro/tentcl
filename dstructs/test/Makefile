@@ -1,7 +1,14 @@
 CFLAGS+= -Wall -I../src
 LIBS+= -L.. -ldstructs
 
+.PHONY: all test clean
+
 all: list btree hash
+
+test: all
+	./list
+	./btree
+	./hash
 
 list: list.o
 	$(CC) -o list list.o $(LIBS)

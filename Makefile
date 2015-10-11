@@ -10,8 +10,8 @@ OBJECT= src/value.o \
 #LEAK_CHECK=1
 
 ifdef LEAK_CHECK
-CFLAGS+= -DLEAK_CHECK
-LIBS+= -lgc
+CFLAGS+= -DLEAK_CHECK -Ibdwgc/include
+LIBS+= -Lbdwgc/.libs -lgc
 endif
 
 all: dstructs mathexpr lineread tclsh #bindings_build

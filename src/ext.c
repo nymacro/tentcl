@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Extension Function Library
- * Copyright (C) 2006-2008  Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
  */
 
 #include <stdio.h>

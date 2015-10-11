@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Core
- * Copyright (C) 2006-2008  Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
  */
 #ifndef TENTCL_TCL_H
 #define TENTCL_TCL_H
@@ -9,7 +9,7 @@
 #include "Hash.h"
 #include "value.h"
 
-#define TENTCL_VERSION "0.8-tentcl"
+#define TENTCL_VERSION "0.8.1-tentcl"
 
 extern List mem_list;
 

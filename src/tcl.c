@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Core
- * Copyright (C) 2006-2008  Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
  */
 
 /*
@@ -48,7 +48,10 @@ static char* Tcl_substring_(char *string, unsigned int start, unsigned int end) 
     int len = end - start;
     char *result = (char*)malloc(sizeof(char) * len + 1);
     int i;
-    
+
+    if (len < 0)
+        len = 0;
+
     for (i = 0; i < len; i++) {
         result[i] = string[start + i];
     }
@@ -76,7 +79,8 @@ static void Tcl_split_alloc(ListNode *node, void *data) {
  * 
  */
 static void Tcl_split_dealloc(ListNode *node) {
-    TclValue_delete((TclValue*)&node->data);
+    //TclValue_delete((TclValue*)&node->data);
+    free(node->data);
 }
 
 static void Hash_variables_dealloc_(HashPair *pair) {

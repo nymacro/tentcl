@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Shell
- * Copyright (C) 2006-2008  Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -27,7 +27,8 @@ int Hash_BTree_compareN_(BTreeNode *node, void *data) {
 /* LineRead */
 int keyHandler(LineRead *self) {
     int len = strlen(self->buf);
-    if (len > 0 && self->lastChar == '\t') {
+    //if (len > 0 && self->lastChar == '\t') {
+    if (self->lastChar == '\t') {
         /* auto complete function names */
         char autoStr[128];
         
@@ -186,11 +187,11 @@ int main(int argc, char *argv[]) {
         TclValue ret;
         status = Tcl_eval(&tcl, buf, &ret);
         free(buf);
-        return 0;
+        return status == TCL_OK;
     }
 
     /* Interactive mode */
-    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2008 Aaron Marks. All Rights Reserved.\n");
+    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2015 Aaron Marks. All Rights Reserved.\n");
     printf("Features: ");
 #ifndef NO_LINEREAD
     printf("lineread ");

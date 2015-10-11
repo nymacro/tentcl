@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 # Tentcl DocGen
-# Aaron Marks 2006-2008
+# Aaron Marks 2006-2015
 use strict;
 
 my @functions;

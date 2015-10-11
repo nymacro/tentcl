@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Standard Function Library
- * Copyright (C) 2006-2008  Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
  */
 #ifndef TENTCL_STD_H
 #define TENTCL_STD_H
