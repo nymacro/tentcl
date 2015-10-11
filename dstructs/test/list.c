@@ -30,12 +30,63 @@ void string_dealloc(ListNode *node)           { free(node->data); }
 void push_pop(List *list) {
     List_push(list, 12);
     List_push(list, 7);
+    List_push(list, 2);
     assert(List_index(list, 0)->data == 12);
     assert(List_index(list, 1)->data == 7);
     assert(List_first(list)->data == 12);
+    assert(List_last(list)->data == 2);
+    List_pop(list);
+    assert(List_first(list)->data == 12);
+    List_pop(list);
+    assert(List_first(list)->data == 12);
+    List_pop(list);
+    assert(List_first(list) == NULL);
+}
+
+void push_shift(List *list) {
+    List_push(list, 12);
+    List_push(list, 7);
+    List_push(list, 2);
+    assert(List_index(list, 0)->data == 12);
+    assert(List_index(list, 1)->data == 7);
+    assert(List_first(list)->data == 12);
+    assert(List_last(list)->data == 2);
+    List_shift(list);
+    assert(List_first(list)->data == 7);
+    List_shift(list);
+    assert(List_first(list)->data == 2);
+    List_shift(list);
+    assert(List_first(list) == NULL);
+}
+
+void remove_head(List *list) {
+    List_push(list, 12);
+    List_push(list, 7);
+    List_push(list, 8);
+    List_remove(list, List_index(list, 0));
+    assert(List_size(list) == 2);
+    assert(List_first(list)->data == 7);
+    assert(List_last(list)->data == 8);
+}
+
+void remove_tail(List *list) {
+    List_push(list, 12);
+    List_push(list, 7);
+    List_push(list, 8);
+    List_remove(list, List_index(list, 2));
+    assert(List_size(list) == 2);
+    assert(List_first(list)->data == 12);
     assert(List_last(list)->data == 7);
-    List_pop(list);
-    List_pop(list);
+}
+
+void remove_mid(List *list) {
+    List_push(list, 12);
+    List_push(list, 7);
+    List_push(list, 8);
+    List_remove(list, List_index(list, 1));
+    assert(List_size(list) == 2);
+    assert(List_first(list)->data == 12);
+    assert(List_last(list)->data == 8);
 }
 
 void str_push_pop(List *list) {
@@ -52,6 +103,11 @@ void str_push_pop(List *list) {
 
 int main(int argc, char *argv[]) {
     RUN_TEST(push_pop);
+    RUN_TEST(push_shift);
+    RUN_TEST(remove_head);
+    RUN_TEST(remove_tail);
+    RUN_TEST(remove_mid);
+
     RUN_TEST(str_push_pop);
 
     return 0;

@@ -1,4 +1,4 @@
-CFLAGS+= -Wall -I../src
+CFLAGS+= -g -Wall -I../src
 LIBS+= -L.. -ldstructs
 
 .PHONY: all test clean

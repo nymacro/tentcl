@@ -64,14 +64,13 @@ static char* Tcl_substring_(char *string, unsigned int start, unsigned int end) 
  * 
  */
 static int Tcl_split_compare(ListNode *node, void *data) {
-	return strcmp(node->data, data);
+    return strcmp(node->data, data);
 }
 
 /* Tcl_string_alloc
  * 
  */
 static void Tcl_split_alloc(ListNode *node, void *data) {
-    //node->data = strdup(data);
     node->data = data;
 }
 
@@ -79,8 +78,7 @@ static void Tcl_split_alloc(ListNode *node, void *data) {
  * 
  */
 static void Tcl_split_dealloc(ListNode *node) {
-    //TclValue_delete((TclValue*)&node->data);
-    free(node->data);
+    TclValue_delete((TclValue*)&node->data);
 }
 
 static void Hash_variables_dealloc_(HashPair *pair) {
@@ -138,11 +136,10 @@ void Tcl_free(Tcl *self) {
 
 /* Tcl_evalExpression
  * Evaluate single Tcl expression
+ * @param ret must be a freed if set
  */
 TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
     TclReturn status = TCL_OK;
-    
-    TclValue_new(ret, NULL);
     
     /* skip white space */
     while (isspace(expression[0]))
@@ -167,8 +164,7 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
     
     int i;
     for (i = 0; i < argc; i++) {
-        argv[argc - i - 1] = Tcl_expand(vm, List_last(list)->data);
-        List_pop(list);
+        argv[i] = Tcl_expand(vm, List_index(list, i)->data);
     }
     
     /* call the function */
@@ -187,6 +183,8 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
 
 /* Tcl_eval
  * Evaluate Tcl expression.
+ *
+ * @param ret must be freed if set
  */
 TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
     List *list = List_malloc();
@@ -194,7 +192,6 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
     TclReturn status = TCL_EXCEPTION;
 
     if (List_size(list) < 1) {
-        TclValue_new(ret, NULL);
         List_free(list);
         return TCL_OK;
     }
@@ -219,6 +216,7 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
 
 /* Tcl_funcall
  * Call Tcl command.
+ * @param ret must be freed if set
  */
 TclReturn Tcl_funcall(Tcl *vm, char *function, int argc, TclValue argv[], TclValue *ret) {
     HashPair *p = Hash_get(vm->functions, function);
@@ -276,6 +274,8 @@ static char *Tcl_getKeyedValue_(Tcl *vm, char *str, char *key) {
 
 /* Tcl_expand
  * Expand the string, performing command and variable substitution
+ *
+ * @return Result of expansion. Must be freed with TclValue_delete
  */
 TclValue Tcl_expand(Tcl *vm, char *value) {
     int i;
@@ -333,6 +333,7 @@ TclValue Tcl_expand(Tcl *vm, char *value) {
                 if (status == TCL_OK) {
                     TclValue_append(&result, eval);
                 }
+                TclValue_delete(&eval);
                 free(str);
                 i = end;
             } else {
@@ -393,8 +394,6 @@ void Tcl_split(Tcl *vm, TclValue value, char *delims, List *result) {
     result->compare = Tcl_split_compare;
     result->alloc = Tcl_split_alloc;
     result->dealloc = Tcl_split_dealloc;
-    
-    //printf("TRYING TO SPLIT '%s'\n", value);
     
     for (i = 0; i < strlen(value); i++) {
         if (value[i] == '{' && !squares && !quoted)

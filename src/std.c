@@ -56,7 +56,7 @@ TclReturn TclStd_userFuncall(Tcl *vm, int argc, char *argv[], TclValue *ret) {
     
     for (i = 0; i < List_size(f->args); i++) {
         HashPair *p = Hash_get(vm->variables, List_index(f->args, i)->data);
-        p->data = argv[i + 1];
+        TclValue_new((TclValue*)&p->data, argv[i + 1]);
         //printf("%i '%s' '%s'\n", i, List_index(&f->args, i)->data, argv[i + 1]);
     }
     status = Tcl_eval(vm, f->code, ret);
@@ -66,8 +66,8 @@ TclReturn TclStd_userFuncall(Tcl *vm, int argc, char *argv[], TclValue *ret) {
     return status;
 }
 
-TclValue TclStd_expression(Tcl *vm, TclValue val) {
-    val = Tcl_expand(vm, val);
+TclValue TclStd_expression(Tcl *vm, TclValue expression) {
+    TclValue val = Tcl_expand(vm, expression);
     int ret = Math_eval(val);
     TclValue_delete(&val);
     char tmp[128];
@@ -128,7 +128,7 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     } else if (argc < 3) {
         HashPair *p = Hash_get(vm->variables, argv[1]);
         if (p->data)
-            *ret = p->data;
+            TclValue_new(ret, p->data);
         else
             printf("can't read \"%s\": no such variable\n", argv[1]);
     } else {
@@ -136,7 +136,8 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         TclValue value;
         TclValue_new(&value, argv[2]);
         p->data = value;
-        *ret = p->data;
+
+        TclValue_new(ret, value); /* set return value */
     }
     return TCL_OK;
 }
@@ -212,7 +213,9 @@ TclReturn TclStd_expr(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     for (i = 1; i < argc; i++) {
         TclValue_append(&combined, argv[i]);
     }
-    *ret = TclStd_expression(vm, combined);
+    TclValue value = TclStd_expression(vm, combined);
+    TclValue_delete(&combined);
+    TclValue_replace(ret, &value);
     return TCL_OK;
 }
 
@@ -239,6 +242,7 @@ TclReturn TclStd_if(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
             // empty false case, do nothing
         }
     }
+    TclValue_delete(&result);
     return status;
 }
 
@@ -344,7 +348,9 @@ TclReturn TclStd_for(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         return TCL_EXCEPTION;
     }
     status = Tcl_eval(vm, argv[1], ret);
-    while (atoi(TclStd_expression(vm, argv[2]))) {
+
+    TclValue value = TclStd_expression(vm, argv[2]);
+    while (atoi(value)) {
         status = Tcl_eval(vm, argv[4], ret);
         TclValue tmp;
         TclValue_new(&tmp, NULL);
@@ -363,6 +369,8 @@ TclReturn TclStd_for(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
             break;
         }
     }
+    TclValue_delete(&value);
+
     return status;
 }
 
@@ -473,6 +481,7 @@ TclReturn TclStd_list(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc < 2)
         return TCL_EXCEPTION;
     int i;
+    TclValue_new(ret, NULL);
     for (i = 1; i < argc; i++) {
         TclValue_append(ret, argv[i]);
         TclValue_append(ret, " ");
@@ -493,7 +502,7 @@ TclReturn TclStd_llength(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 
     char tmp[32];
     snprintf(tmp, 32, "%i", List_size(&elms));
-    TclValue_set(ret, tmp);
+    TclValue_new(ret, tmp);
 
     List_delete(&elms);
 
@@ -619,9 +628,9 @@ TclReturn TclStd_gets(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
             TclValue_new(&value, NULL);
             p->data = value;
         }
-        TclValue_set((TclValue*)&p->data, line);
+        TclValue_new((TclValue*)&p->data, line);
     } else {
-        TclValue_set(ret, line);
+        TclValue_new(ret, line);
     }
     return TCL_OK;
 }
@@ -678,7 +687,7 @@ TclReturn TclStd_glob(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (glob(argv[1], 0, NULL, &g) != 0)
         return TCL_EXCEPTION;
 
-    TclValue_set(ret, "");
+    TclValue_new(ret, "");
     for (i = 0; i < g.gl_pathc; i++) {
         TclValue_append(ret, g.gl_pathv[i]);
         TclValue_append(ret, " ");

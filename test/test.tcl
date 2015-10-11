@@ -4,7 +4,7 @@ proc test {test_name test_body} {
 }
 
 proc assert {condition} {
-    if {$condition} { } else { puts "failed condition $condition"; exit 1 }
+    if {$condition} { } else { puts "failed condition $condition"; fail }
 }
 
 proc fail {} {

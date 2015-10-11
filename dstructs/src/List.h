@@ -38,6 +38,7 @@ void List_insertBefore(List*, ListNode*, void*);
 void List_add(List*, void*); /* sorted add */
 void List_push(List*, void*);
 void List_pop(List*);
+void List_shift(List*);
 void List_remove(List*, ListNode*);
 unsigned int List_size(List*);
 ListNode* List_first(List*);

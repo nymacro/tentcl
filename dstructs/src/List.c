@@ -107,8 +107,9 @@ void List_insertBefore(List *list, ListNode *next, void *data) {
     if (!next->prev) {
         list->head = node;
         node->prev = NULL;
-    } else
+    } else {
         node->prev = next->prev;
+    }
     next->prev = node;
     list->alloc(node, data);
 }
@@ -157,19 +158,14 @@ void List_push(List *list, void *data) {
  * List_pop: pop node off the back off list
  */
 void List_pop(List *list) {
-    if (list->tail) {
-        if (list->tail->prev) {
-            list->tail = list->tail->prev;
-            list->dealloc(list->tail->next);
-            free(list->tail->next);
-            list->tail->next = NULL;
-        } else {
-            list->dealloc(list->tail);
-            free(list->tail);
-            list->tail = NULL;
-            list->head = NULL;
-        }
-    }
+    List_remove(list, List_last(list));
+}
+
+/*
+ * List_shift: pop node off the front of list
+ */
+void List_shift(List *list) {
+    List_remove(list, List_first(list));
 }
 
 /*
@@ -204,11 +200,12 @@ ListNode* List_last(List *list) {
  */
 ListNode* List_index(List *list, unsigned int index) {
     ListNode *p = list->head;
-    while (p && index != 0) {
+    int i = 0;
+    while (p && i != index) {
         p = p->next;
-        index--;
+        ++i;;
     }
-    return p;
+    return (index == i) ? p : NULL;
 }
 
 /*
@@ -236,14 +233,15 @@ void List_remove(List *list, ListNode *node) {
             ListNode *next = p->next;
             list->dealloc(p);
             free(p);
-
+ 
             if (!prev)
                 list->head = next;
-            if (!next)
-                list->tail = NULL;
-            if (prev)
+            else
                 prev->next = next;
-            if (next)
+
+            if (!next)
+                list->tail = prev;
+            else
                 next->prev = prev;
             return;
         }

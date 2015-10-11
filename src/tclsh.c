@@ -142,10 +142,11 @@ void repl(Tcl *vm, FILE *input) {
             system(line);
         }
     } else if (status == TCL_EXIT) {
-		return;
-	}
-    printf("-> %s\n", (ret == NULL || strlen(ret) == 0) ? "NULL" : ret);
-    TclValue_delete(&ret);
+        return;
+    }
+    printf("-> %s\n", (ret == NULL) ? "NULL" : ret);
+    if (ret)
+        TclValue_delete(&ret);
 
     repl(vm, input);
 }
@@ -184,8 +185,10 @@ int main(int argc, char *argv[]) {
         buf[size] = '\0';
         fclose(fp);
         TclReturn status;
-        TclValue ret;
+        TclValue ret = NULL;
         status = Tcl_eval(&tcl, buf, &ret);
+        if (ret)
+            TclValue_delete(&ret);
         free(buf);
         return status == TCL_OK;
     }
