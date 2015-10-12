@@ -16,6 +16,9 @@ endif
 
 all: dstructs mathexpr lineread tclsh #bindings_build
 
+test: tclsh
+	./tclsh test/test.tcl
+
 dstructs: dstructs/libdstructs.a
 
 dstructs/libdstructs.a:
