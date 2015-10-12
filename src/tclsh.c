@@ -24,10 +24,14 @@ int Hash_BTree_compareN_(BTreeNode *node, void *data) {
     return strncmp(((HashPair*)node->data)->name, data, strlen(data));
 }
 
+#define KEY_LEFT   (char)37
+#define KEY_UP     (char)38
+#define KEY_RIGHT  (char)39
+#define KEY_DOWN   (char)40
+
 /* LineRead */
 int keyHandler(LineRead *self) {
     int len = strlen(self->buf);
-    //if (len > 0 && self->lastChar == '\t') {
     if (self->lastChar == '\t') {
         /* auto complete function names */
         char autoStr[128];

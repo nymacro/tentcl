@@ -5,7 +5,7 @@ CFLAGS=-I../../dstructs/src
 all: $(LIB)
 
 $(LIB): $(OBJS)
-	$(CC) -shared -Wl -o $(LIB) $(OBJS)
+	$(CC) -shared -o $(LIB) $(OBJS)
 
 .c.o:
 	$(CC) -Wall -fPIC -c -o $@ $< $(CFLAGS)

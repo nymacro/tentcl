@@ -8,7 +8,7 @@ TclReturn Tcl_test(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     for (i = 1; i < argc; i++) {
         printf("%s\n", argv[i]);
     }
-    TclValue_set(ret, "wow. it really works!!");
+    TclValue_new(ret, "wow. it really works!!");
     return TCL_OK;
 }
 

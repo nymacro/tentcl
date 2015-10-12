@@ -27,7 +27,7 @@ dstructs_clean:
 mathexpr: mathexpr/libmathexpr.a
 
 mathexpr/libmathexpr.a:
-	-make -C mathexpr
+	make -C mathexpr
 
 mathexpr_clean:
 	-make -C mathexpr clean
@@ -35,7 +35,7 @@ mathexpr_clean:
 lineread: lineread/liblineread.a
 
 lineread/liblineread.a:
-	-make -C lineread
+	make -C lineread
 
 lineread_clean:
 	-make -C lineread clean
@@ -63,7 +63,7 @@ install: all
 	mkdir -p $(DESTDIR)/usr/share/doc/tentcl
 	cp docs.html $(DESTDIR)/usr/share/doc/tentcl
 
-clean: dstructs_clean mathexpr_clean lineread_clean #bindings_clean 
+clean: dstructs_clean mathexpr_clean lineread_clean bindings_clean 
 	-rm $(OBJECT)
 	-rm doc/reference.html
 	-rm tclsh

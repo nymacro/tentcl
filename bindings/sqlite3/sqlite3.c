@@ -25,7 +25,7 @@ TclReturn Tcl_sqopen(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 
     Hash_get(&dbs, tmp)->data = db;
 
-    TclValue_set(ret, tmp);
+    TclValue_new(ret, tmp);
     
     return TCL_OK;
 }
@@ -41,7 +41,7 @@ TclReturn Tcl_sqclose(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     } else {
         return TCL_EXCEPTION;
     }
-    TclValue_set(ret, "closed");
+    TclValue_new(ret, "closed");
     
     return TCL_OK;
 }
@@ -67,11 +67,11 @@ TclReturn Tcl_sqexec(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         printf("SQL error: %s\n", err);
         sqlite3_free(err);
     }
-    TclValue_set(ret, "queried");
+    TclValue_new(ret, "queried");
     return TCL_OK;
 }
 
-void sq_closedb(BTreeNode *node) {
+void sq_closedb(BTreeNode *node, void *_unused) {
     sqlite3_close(node->data);
 }
 void Tcl_cleanup() {

@@ -6,7 +6,7 @@
 TclReturn Tcl_readline(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     char *str = readline((argc >= 2) ? argv[1] : "");
     if (str) {
-        TclValue_set(ret, str);
+        TclValue_new(ret, str);
         free(str);
     }
     return TCL_OK;
@@ -17,6 +17,7 @@ TclReturn Tcl_addhistory(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         return TCL_EXCEPTION;
     }
     add_history(argv[1]);
+    TclValue_new(ret, argv[1]);
     return TCL_OK;
 }
 

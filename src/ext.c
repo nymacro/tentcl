@@ -55,7 +55,7 @@ TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 
     Tcl_register(vm, lambdaName, TclStd_userFuncall);
 
-    TclValue_set(ret, lambdaName);
+    TclValue_new(ret, lambdaName);
 
     List_push(&lambdas, f);
 
@@ -77,7 +77,7 @@ TclReturn TclStd_add(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         sum += atoi(argv[i]);
     }
     sprintf(result, "%i", sum);
-    TclValue_set(ret, result);
+    TclValue_new(ret, result);
     return TCL_OK;
 }
 
@@ -96,7 +96,7 @@ TclReturn TclStd_sub(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         sum -= atoi(argv[i]);
     }
     sprintf(result, "%i", sum);
-    TclValue_set(ret, result);
+    TclValue_new(ret, result);
     return TCL_OK;
 }
 
@@ -115,7 +115,7 @@ TclReturn TclStd_mul(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         sum *= atoi(argv[i]);
     }
     sprintf(result, "%i", sum);
-    TclValue_set(ret, result);
+    TclValue_new(ret, result);
     return TCL_OK;
 }
 
@@ -134,7 +134,7 @@ TclReturn TclStd_div(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
         sum /= atoi(argv[i]);
     }
     sprintf(result, "%i", sum);
-    TclValue_set(ret, result);
+    TclValue_new(ret, result);
     return TCL_OK;
 }
 
@@ -149,7 +149,7 @@ TclReturn TclStd_eql(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     int second = atoi(argv[2]);
     char result[32];
     sprintf(result, "%i", first == second);
-    TclValue_set(ret, result);
+    TclValue_new(ret, result);
     return TCL_OK;
 }
 
@@ -165,7 +165,7 @@ TclReturn TclStd_gt(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     int second = atoi(argv[2]);
     char result[32];
     sprintf(result, "%i", first > second);
-    TclValue_set(ret, result);
+    TclValue_new(ret, result);
     return TCL_OK;
 }
 
@@ -181,7 +181,7 @@ TclReturn TclStd_lt(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     int second = atoi(argv[2]);
     char result[32];
     sprintf(result, "%i", first < second);
-    TclValue_set(ret, result);
+    TclValue_new(ret, result);
     return TCL_OK;
 }
 
@@ -203,7 +203,7 @@ TclReturn TclStd_or(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
             break;
         }
     }
-    TclValue_set(ret, tmp);
+    TclValue_new(ret, tmp);
     TclValue_delete(&tmp);
     return TCL_OK;
 }
@@ -225,7 +225,7 @@ TclReturn TclStd_and(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
             break;
         }
     }
-    TclValue_set(ret, tmp);
+    TclValue_new(ret, tmp);
     TclValue_delete(&tmp);
     return TCL_OK;
 }
@@ -271,7 +271,7 @@ TclReturn TclStd_use(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 #else
     puts("use not supported\n");
 #endif
-    TclValue_set(ret, "loaded");
+    TclValue_new(ret, "loaded");
     return TCL_OK;
 }
 
