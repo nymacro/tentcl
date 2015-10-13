@@ -194,7 +194,7 @@ int main(int argc, char *argv[]) {
         if (ret)
             TclValue_delete(&ret);
         free(buf);
-        return status == TCL_OK;
+        return Tcl_statusToCode(status);
     }
 
     /* Interactive mode */

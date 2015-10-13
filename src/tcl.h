@@ -60,4 +60,6 @@ void Tcl_popNamespace(Tcl *self);
 char *Tcl_getVariable(Tcl *self, char *name);
 int Tcl_isComplete(Tcl *self, char *expr);
 
+int Tcl_statusToCode(TclReturn);
+
 #endif

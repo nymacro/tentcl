@@ -30,7 +30,9 @@ void TclValue_delete(TclValue *value) {
         free(*value);
         *value = NULL;
     } else {
+#ifdef DEBUG
         fprintf(stderr, "TclValue_delete called on NULL\n");
+#endif
     }
 }
 

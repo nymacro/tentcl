@@ -1,5 +1,18 @@
 #include "BTree.h"
 
+typedef void (*TestFunc)(BTree*);
+
+#define RUN_TEST(test_func) {			\
+	printf("starting %s\n", (#test_func));	\
+	run_test((test_func));			\
+	printf("finished %s\n", (#test_func));	\
+    }
+void run_test(TestFunc func) {
+    BTree *tree = BTree_malloc();
+    func(tree);
+    BTree_free(tree);
+}
+
 int string_compare(BTreeNode *node, void *data) {
     return strcmp(data, node->data);
 }
@@ -11,20 +24,20 @@ void string_alloc(BTreeNode *node, void *data) {
 void string_dealloc(BTreeNode *node) {
 }
 
-int main(int argc, char *argv[]) {
-    BTree *tree = BTree_malloc();
-    tree->compare = string_compare;
-    tree->alloc = string_alloc;
-    tree->dealloc = string_dealloc;
-
-    printf("Adding c\n");
-    BTree_add(tree, "c");
-    printf("Adding a\n");
+void bad_test(BTree *tree) {
     BTree_add(tree, "a");
-    printf("Adding b\n");
     BTree_add(tree, "b");
+    BTree_add(tree, "c");
+    BTree_add(tree, "d");
+    BTree_add(tree, "a");
+    BTree_add(tree, "d");
+    BTree_add(tree, "b");
+    BTree_add(tree, "z");
+}
 
-    BTree_free(tree);
+int main(int argc, char *argv[]) {
+    RUN_TEST(bad_test);
+
     return 0;
 }
 

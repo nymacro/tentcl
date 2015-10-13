@@ -31,6 +31,29 @@ static char *errorReturnStrings[] = {
     "(OOM) out of memory"
 };
 
+/** Tcl_statusToCode
+ * Get appropriate return code for status
+ */
+int Tcl_statusToCode(TclReturn status) {
+    switch (status) {
+    case TCL_OK:
+    case TCL_RETURN:
+    case TCL_BREAK:
+    case TCL_CONTINUE:
+	return 0;
+    case TCL_EXCEPTION:
+	return 1;
+    case TCL_EXIT:
+	return 0; /* FIXME this shouldn't always be 0 */
+    case TCL_BADCMD:
+	return 2;
+    case TCL_OOM:
+	return 3;
+    default:
+	return 0x80 | status;
+    }
+}
+
 /* Tcl_returnString
  * Return a status string for given status number.
  */
@@ -205,7 +228,7 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
                 break;
             if (status == TCL_BREAK)
                 break;
-            printf("%s from: %s\n", Tcl_returnString(status), (char*)List_index(list, i)->data);
+            fprintf(stderr, "%s from: %s\n", Tcl_returnString(status), (char*)List_index(list, i)->data);
             break;
         }
     }

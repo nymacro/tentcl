@@ -119,25 +119,26 @@ TclReturn TclStd_puts(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * existing value of varName is returned.
  */
 TclReturn TclStd_set(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
-    /*
-    printf("GETTING HASH PAIR FOR '%s' from %x\n", argv[1], vm->variables);
-    printf("EXISTS: %i\n", Hash_exists(vm->variables, argv[1]));
-    */
     if (argc < 2) {
         return TCL_EXCEPTION;
     } else if (argc < 3) {
         HashPair *p = Hash_get(vm->variables, argv[1]);
-        if (p->data)
+        if (p->data) {
             TclValue_new(ret, p->data);
-        else
+        } else {
             printf("can't read \"%s\": no such variable\n", argv[1]);
+	}
     } else {
         HashPair *p = Hash_get(vm->variables, argv[1]);
-        TclValue value;
-        TclValue_new(&value, argv[2]);
-        p->data = value;
+	if (p->data) {
+	    TclValue_set((TclValue*)&p->data, argv[2]);
+	} else {
+	    TclValue value;
+	    TclValue_new(&value, argv[2]);
+	    p->data = value;
+	}
 
-        TclValue_new(ret, value); /* set return value */
+        TclValue_new(ret, argv[2]); /* set return value */
     }
     return TCL_OK;
 }
@@ -165,7 +166,11 @@ TclReturn TclStd_unset(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * a default value of 0 (sucess) will be used.
  */
 TclReturn TclStd_exit(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
-    return TCL_EXIT;
+    if (argc == 1)
+	return TCL_EXIT;
+    if (argc == 2)
+	return TCL_EXIT; /* FIXME need to fix return codes */
+    return TCL_BADCMD;
 }
 
 /*tcl: proc name varlist body
@@ -697,6 +702,41 @@ TclReturn TclStd_glob(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+/*tcl: catch script ?varName?
+ * Catch all exceptional return codes
+ */
+TclReturn TclStd_catch(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+    /* basically eval with an additional argument */
+    if (argc < 2 || argc > 3) {
+        return TCL_EXCEPTION;
+    }
+    TclValue evalRet = NULL;
+
+    int status;
+    status = Tcl_eval(vm, argv[1], &evalRet);
+    
+    /* change value of varName */
+    if (argc == 3) {
+	// try to set variable
+        HashPair *p = Hash_get(vm->variables, argv[1]);
+	if (p->data) {
+	    TclValue_set((TclValue*)&p->data, evalRet);
+	} else {
+	    TclValue value;
+	    TclValue_new(&value, evalRet);
+	    p->data = value;
+	}
+    }
+    
+    TclValue_delete(&evalRet);
+
+    char buf[8];
+    snprintf(buf, 8, "%i", status);
+    TclValue_new(ret, buf);
+    
+    return TCL_OK;
+}
+
 /**********************************************/
 
 void TclStd_cleanup(void) {
@@ -734,6 +774,7 @@ void TclStd_register(Tcl *vm) {
     Tcl_register(vm, "gets", TclStd_gets);
     Tcl_register(vm, "string", TclStd_string);
     Tcl_register(vm, "glob", TclStd_glob);
+    Tcl_register(vm, "catch", TclStd_catch);
 
     files = Hash_malloc();
     HashPair *p = Hash_get(files, "stdout");
