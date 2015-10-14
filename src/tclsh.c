@@ -6,6 +6,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <unistd.h>
+#include <getopt.h>
+
 #include "LineRead.h"
 #include "tcl.h"
 #include "List.h"
@@ -159,7 +162,58 @@ void destroy(void) {
     Tcl_delete(&tcl);
 }
 
+
+TclReturn eval_file(char *filename) {
+    FILE *fp = fopen(filename, "r");
+    if (!fp) {
+	fprintf(stderr, "Error opening file '%s'\n", filename);
+	return TCL_EXCEPTION;
+    }
+    int start = ftell(fp);
+    fseek(fp, 0, SEEK_END);
+    int end = ftell(fp);
+    int size = end - start;
+    fseek(fp, 0, SEEK_SET);
+    
+    char *buf = (char*)malloc(sizeof(char) * (size + 1));
+    fread(buf, size, sizeof(char), fp);
+    buf[size] = '\0';
+    fclose(fp);
+
+    TclReturn status;
+    TclValue ret = NULL;
+    status = Tcl_eval(&tcl, buf, &ret);
+    if (ret)
+	TclValue_delete(&ret);
+    free(buf);
+    
+    return status;
+}
+
+void about(void) {
+    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2015 Aaron Marks. All Rights Reserved.\n");
+    printf("Features: ");
+#ifndef NO_LINEREAD
+    printf("lineread ");
+#endif
+#ifdef WITH_LIBRARIES
+    printf("sharelibs ");
+#endif
+    printf("\n");
+}
+
+void usage(void) {
+    printf("Usage:\n");
+    printf("\ttclsh [options] [script name]\n");
+    printf("\n");
+    printf("Options:\n");
+    printf("\t-I<source>     --include=<source>     include source before executing script or shell\n");
+    printf("                                        \n");
+}
+
 int main(int argc, char *argv[]) {
+    TclReturn status = TCL_OK;
+    
     /* Initialize GC */
 #ifdef LEAK_CHECK
     GC_INIT();
@@ -170,43 +224,57 @@ int main(int argc, char *argv[]) {
     atexit(destroy);
     TclStd_register(&tcl);
     TclExt_register(&tcl);
+    
+    /* Parse command line params */
+    int c = 0;
+    int option_index = 0;
+    while (1) {
+	static struct option long_options[] = {
+	    {"include", required_argument, 0, 0},
+	    {"help", no_argument, 0, 0},
+	    {0, 0, 0, 0}
+	};
+	c = getopt_long(argc, argv, "I:h", long_options, &option_index);
+	if (c == -1) {
+	    break;
+	}
+	switch (c) {
+	case 0: /* long options */
+	    if (strcmp(long_options[option_index].name, "include") == 0) {
+		printf("including %s\n", optarg);
+		status = eval_file(optarg);
+	    } if (strcmp(long_options[option_index].name, "help") == 0) {
+		usage();
+		exit(0);
+	    }
+	    break;
+	case 'I':
+	    status = eval_file(optarg);
+	    break;
+	case 'h':
+	    usage();
+	    exit(0);
+	    break;
+	default:
+	    usage();
+	    exit(1);
+	    break;
+	}
+    }
 
     /* Script mode */
-    if (argc > 1) {
-        FILE *fp = fopen(argv[1], "r");
-        if (!fp) {
-            fprintf(stderr, "Error opening file '%s'\n", argv[1]);
-            return 1;
-        }
-        int start = ftell(fp);
-        fseek(fp, 0, SEEK_END);
-        int end = ftell(fp);
-        int size = end - start;
-        fseek(fp, 0, SEEK_SET);
-
-        char *buf = (char*)malloc(sizeof(char) * (size + 1));
-        fread(buf, size, sizeof(char), fp);
-        buf[size] = '\0';
-        fclose(fp);
-        TclReturn status;
-        TclValue ret = NULL;
-        status = Tcl_eval(&tcl, buf, &ret);
-        if (ret)
-            TclValue_delete(&ret);
-        free(buf);
-        return Tcl_statusToCode(status);
+    if (optind < argc) {
+	while (optind < argc) {
+	    status = eval_file(argv[optind++]);
+	    if (status != TCL_OK) {
+		return Tcl_statusToCode(status);
+	    }
+	}
+	return status;
     }
 
     /* Interactive mode */
-    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2015 Aaron Marks. All Rights Reserved.\n");
-    printf("Features: ");
-#ifndef NO_LINEREAD
-    printf("lineread ");
-#endif
-#ifdef WITH_LIBRARIES
-    printf("sharelibs ");
-#endif
-    printf("\n");
+    about();
 
     lr = LineRead_malloc();
     lr->isComplete = (LineReadIsComplete)isComplete;

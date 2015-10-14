@@ -1,3 +1,5 @@
+.PHONY: all clean
+
 all: basic_lib sqlite3_lib
 	echo "done building bindings"
 

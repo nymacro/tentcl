@@ -2,6 +2,8 @@ OBJS=src/LineRead.o
 LIBFILE=liblineread.a
 CFLAGS= -I../dstructs/src
 
+.PHONY: all clean test
+
 all: $(LIBFILE)
 
 .c.o:

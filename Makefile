@@ -14,10 +14,12 @@ CFLAGS+= -DLEAK_CHECK -Ibdwgc/include
 LIBS+= -Lbdwgc/.libs -lgc
 endif
 
+.PHONY: all clean test
+
 all: dstructs mathexpr lineread tclsh #bindings_build
 
 test: tclsh
-	./tclsh test/test.tcl
+	./tclsh -Itest/test.tcl test/*_test.tcl
 
 dstructs: dstructs/libdstructs.a
 

@@ -1,14 +1,13 @@
 proc test {test_name test_body} {
     puts "  $test_name"
-    eval $test_body
+    set ret [catch {eval $test_body}]
+    if {$ret != 0} { puts stderr "    failed ($ret)" }
 }
 
 proc pending {test_name test_body} {
     puts "  PENDING: $test_name"
     set ret [catch {eval $test_body}]
-    if {$ret != 0} {
-        puts stderr "    passed unexpectedly"
-    }
+    if {$ret != 0} {puts stderr "    passed unexpectedly"}
 }
 
 proc assert {condition} {
@@ -24,10 +23,9 @@ proc run {} {
     set test_files [glob "test/0*_*.tcl"]
     foreach test $test_files {
         puts "$test"
-        source $test
+        set ret [catch { source $test }]
+        if {$ret != 0} { puts stderr "  ERROR running $test ($ret)" }
     }
-    puts "OK [llength $test_files] suites"
+    puts "[llength $test_files] suites"
 }
-
-run
 
