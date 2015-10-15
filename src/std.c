@@ -168,8 +168,13 @@ TclReturn TclStd_unset(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 TclReturn TclStd_exit(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc == 1)
 	return TCL_EXIT;
-    if (argc == 2)
-	return TCL_EXIT; /* FIXME need to fix return codes */
+    if (argc == 2) {
+	TclReturnInfo info;
+	info.type = TCL_RI_INT;
+	info.i    = atoi(argv[1]);
+	Tcl_setReturnInfo(info);
+	return TCL_EXIT;
+    }
     return TCL_BADCMD;
 }
 

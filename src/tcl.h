@@ -38,6 +38,23 @@ enum TclReturn {
 };
 typedef enum TclReturn TclReturn;
 
+enum TclReturnInfoType {
+    TCL_RI_INT = 0,
+    TCL_RI_STRING,
+    TCL_RI_USERDATA
+};
+typedef enum TclReturnInfoType TclReturnInfoType;
+
+struct TclReturnInfo {
+    TclReturnInfoType type;
+    union {
+	int i;
+	char *s;
+	void *u;
+    };
+};
+typedef struct TclReturnInfo TclReturnInfo;
+
 typedef TclReturn (*TclFunction)(Tcl*, int, TclValue[], TclValue*);
 
 /* Tcl Init/Free functions */
@@ -61,5 +78,8 @@ char *Tcl_getVariable(Tcl *self, char *name);
 int Tcl_isComplete(Tcl *self, char *expr);
 
 int Tcl_statusToCode(TclReturn);
+
+TclReturnInfo Tcl_getReturnInfo(void);
+void Tcl_setReturnInfo(TclReturnInfo);
 
 #endif

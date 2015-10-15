@@ -31,6 +31,22 @@ static char *errorReturnStrings[] = {
     "(OOM) out of memory"
 };
 
+static TclReturnInfo returnInfo;
+
+/* Tcl_getReturnInfo
+ * Retrieve additional info from return.
+ */
+TclReturnInfo Tcl_getReturnInfo(void) {
+    return returnInfo;
+}
+
+/* Tcl_setReturnInfo
+ * Set additional info for return.
+ */
+void Tcl_setReturnInfo(TclReturnInfo info) {
+    returnInfo = info;
+}
+
 /** Tcl_statusToCode
  * Get appropriate return code for status
  */
@@ -44,7 +60,11 @@ int Tcl_statusToCode(TclReturn status) {
     case TCL_EXCEPTION:
 	return 1;
     case TCL_EXIT:
-	return 0; /* FIXME this shouldn't always be 0 */
+	if (returnInfo.type == TCL_RI_INT) {
+	    return returnInfo.i;
+	} else {
+	    return 0x80;
+	}
     case TCL_BADCMD:
 	return 2;
     case TCL_OOM:
@@ -53,6 +73,7 @@ int Tcl_statusToCode(TclReturn status) {
 	return 0x80 | status;
     }
 }
+
 
 /* Tcl_returnString
  * Return a status string for given status number.

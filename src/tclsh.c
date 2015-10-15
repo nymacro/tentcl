@@ -116,7 +116,7 @@ int isComplete(LineRead *self) {
 }
 
 /* Read-Eval-Print-Loop */
-void repl(Tcl *vm, FILE *input) {
+TclReturn repl(Tcl *vm, FILE *input) {
     char *prompt = Tcl_getVariable(vm, "tcl_prompt1");
     if (!prompt)
         prompt = "% ";
@@ -136,9 +136,9 @@ void repl(Tcl *vm, FILE *input) {
 #endif
     
     if (feof(stdin) || !line) {
-        return;
+        return TCL_OK;
     }
-    TclReturn status;
+    TclReturn status = TCL_OK;
     TclValue ret = NULL;
     status = Tcl_eval(vm, line, &ret);
     // shell command execution if command doesn't exist
@@ -149,13 +149,13 @@ void repl(Tcl *vm, FILE *input) {
             system(line);
         }
     } else if (status == TCL_EXIT) {
-        return;
+	TclValue_delete(&ret);
+        return status;
     }
     printf("-> %s\n", (ret == NULL) ? "NULL" : ret);
-    if (ret)
-        TclValue_delete(&ret);
+    TclValue_delete(&ret);
 
-    repl(vm, input);
+    return repl(vm, input); /* hope your compiler does TCO */
 }
 
 void destroy(void) {
@@ -163,7 +163,7 @@ void destroy(void) {
 }
 
 
-TclReturn eval_file(char *filename) {
+TclReturn evalFile(char *filename) {
     FILE *fp = fopen(filename, "r");
     if (!fp) {
 	fprintf(stderr, "Error opening file '%s'\n", filename);
@@ -183,32 +183,31 @@ TclReturn eval_file(char *filename) {
     TclReturn status;
     TclValue ret = NULL;
     status = Tcl_eval(&tcl, buf, &ret);
-    if (ret)
-	TclValue_delete(&ret);
+    TclValue_delete(&ret);
     free(buf);
     
     return status;
 }
 
 void about(void) {
-    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2015 Aaron Marks. All Rights Reserved.\n");
-    printf("Features: ");
+    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2015 Aaron Marks. All Rights Reserved.\n"
+           "Features: "
 #ifndef NO_LINEREAD
-    printf("lineread ");
+           "lineread "
 #endif
 #ifdef WITH_LIBRARIES
-    printf("sharelibs ");
+           "sharelibs "
 #endif
-    printf("\n");
+           "\n");
 }
 
 void usage(void) {
-    printf("Usage:\n");
-    printf("\ttclsh [options] [script name]\n");
-    printf("\n");
-    printf("Options:\n");
-    printf("\t-I<source>     --include=<source>     include source before executing script or shell\n");
-    printf("                                        \n");
+    printf("Usage:\n"
+           "\ttclsh [options] [script name]\n"
+           "\n"
+           "Options:\n"
+           "\t-I<source>     --include=<source>     include source before executing script or shell\n"
+           "                                        \n");
 }
 
 int main(int argc, char *argv[]) {
@@ -242,14 +241,14 @@ int main(int argc, char *argv[]) {
 	case 0: /* long options */
 	    if (strcmp(long_options[option_index].name, "include") == 0) {
 		printf("including %s\n", optarg);
-		status = eval_file(optarg);
+		status = evalFile(optarg);
 	    } if (strcmp(long_options[option_index].name, "help") == 0) {
 		usage();
 		exit(0);
 	    }
 	    break;
 	case 'I':
-	    status = eval_file(optarg);
+	    status = evalFile(optarg);
 	    break;
 	case 'h':
 	    usage();
@@ -265,12 +264,12 @@ int main(int argc, char *argv[]) {
     /* Script mode */
     if (optind < argc) {
 	while (optind < argc) {
-	    status = eval_file(argv[optind++]);
+	    status = evalFile(argv[optind++]);
 	    if (status != TCL_OK) {
 		return Tcl_statusToCode(status);
 	    }
 	}
-	return status;
+	return Tcl_statusToCode(status);
     }
 
     /* Interactive mode */
@@ -279,7 +278,7 @@ int main(int argc, char *argv[]) {
     lr = LineRead_malloc();
     lr->isComplete = (LineReadIsComplete)isComplete;
     lr->keyHandler = (LineReadKeyHandler)keyHandler;
-    repl(&tcl, stdin);
+    status = repl(&tcl, stdin);
     LineRead_free(lr);
 
     printf("\n");
@@ -287,5 +286,6 @@ int main(int argc, char *argv[]) {
     CHECK_LEAKS();
 #endif
     printf("\n");
-    return 0;
+
+    return Tcl_statusToCode(status);
 }
