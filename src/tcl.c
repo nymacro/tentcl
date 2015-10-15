@@ -374,8 +374,10 @@ TclValue Tcl_expand(Tcl *vm, char *value) {
                 char *str = Tcl_substring_(value, i + 1, end);
                 TclValue eval = NULL;
                 status = Tcl_eval(vm, str, &eval);
-                if (status == TCL_OK) {
+                if (status == TCL_OK && eval) {
                     TclValue_append(&result, eval);
+                } else {
+                    /* FIXME */
                 }
                 TclValue_delete(&eval);
                 free(str);
