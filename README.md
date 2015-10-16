@@ -15,10 +15,11 @@ source code, which must be placed in the Tentcl root directory. e.g.
 
 ```
   tentcl
-  |- src
-  |- mathexpr
-  |- dstructs
-  |- lineread
+  |- src/
+  |- mathexpr/
+  |- dstructs/
+  |- lineread/
+  |- Makefile
 ```
 
 ## BUILDING

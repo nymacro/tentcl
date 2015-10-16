@@ -193,7 +193,7 @@ TclReturn TclStd_or(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
-    TclValue tmp;
+    TclValue tmp = NULL;
     int elmret;
     int i;
     TclValue_new(&tmp, NULL);
@@ -215,7 +215,7 @@ TclReturn TclStd_and(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
-    TclValue tmp;
+    TclValue tmp = NULL;
     int elmret;
     int i;
     TclValue_new(&tmp, NULL);

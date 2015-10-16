@@ -323,7 +323,7 @@ static char *Tcl_getKeyedValue_(Tcl *vm, char *str, char *key) {
  */
 TclValue Tcl_expand(Tcl *vm, char *value) {
     int i;
-    TclValue result;
+    TclValue result = NULL;
     TclValue_new(&result, NULL);
     
     for (i = 0; i < strlen(value); i++) {
@@ -490,7 +490,7 @@ void Tcl_register(Tcl *vm, char *name, TclFunction function) {
  * Add variable to Tcl VM.
  */
 void Tcl_addVariable(Tcl *self, char *name, char *value) {
-    TclValue val;
+    TclValue val = NULL;
     TclValue_new(&val, value);
     Hash_get(self->variables, name)->data = val;
 }

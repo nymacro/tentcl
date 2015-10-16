@@ -72,7 +72,7 @@ TclValue TclStd_expression(Tcl *vm, TclValue expression) {
     TclValue_delete(&val);
     char tmp[128];
     snprintf(tmp, 128, "%i", ret);
-    TclValue retval;
+    TclValue retval = NULL;
     TclValue_new(&retval, tmp);
     return retval;
 }
@@ -133,7 +133,7 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 	if (p->data) {
 	    TclValue_set((TclValue*)&p->data, argv[2]);
 	} else {
-	    TclValue value;
+	    TclValue value = NULL;
 	    TclValue_new(&value, argv[2]);
 	    p->data = value;
 	}
@@ -218,7 +218,7 @@ TclReturn TclStd_proc(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  */
 TclReturn TclStd_expr(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     int i;
-    TclValue combined;
+    TclValue combined = NULL;
     TclValue_new(&combined, NULL);
     for (i = 1; i < argc; i++) {
         TclValue_append(&combined, argv[i]);
@@ -301,6 +301,8 @@ TclReturn TclStd_source(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     fread(code, size, sizeof(char), fp);
     code[size] = '\0';
 
+    fclose(fp);
+
     status = Tcl_eval(vm, code, ret);
     free(code);
 
@@ -362,7 +364,7 @@ TclReturn TclStd_for(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     TclValue value = TclStd_expression(vm, argv[2]);
     while (atoi(value)) {
         status = Tcl_eval(vm, argv[4], ret);
-        TclValue tmp;
+        TclValue tmp = NULL;
         TclValue_new(&tmp, NULL);
         Tcl_eval(vm, argv[3], &tmp);
         TclValue_delete(&tmp);
@@ -470,7 +472,7 @@ TclReturn TclStd_eval(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
-    TclValue command;
+    TclValue command = NULL;
     TclValue_new(&command, NULL);
     int i;
     int status;
@@ -632,7 +634,7 @@ TclReturn TclStd_gets(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     fgets(line, 1023, fp);
     line[1023] = '\0';
     if (argc == 3) {
-        TclValue value;
+        TclValue value = NULL;
         HashPair *p = Hash_get(vm->variables, argv[2]);
         if (!p->data) {
             TclValue_new(&value, NULL);
@@ -727,7 +729,7 @@ TclReturn TclStd_catch(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 	if (p->data) {
 	    TclValue_set((TclValue*)&p->data, evalRet);
 	} else {
-	    TclValue value;
+	    TclValue value = NULL;
 	    TclValue_new(&value, evalRet);
 	    p->data = value;
 	}

@@ -42,7 +42,6 @@ void TclValue_set(TclValue *value, char *data) {
 }
 
 void TclValue_set_(TclValue *value, char *data) {
-    TclValue_delete(value);
     *value = data;
 }
 
