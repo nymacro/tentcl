@@ -1,0 +1,3 @@
+[submodule "mathexpr"]
+	path = mathexpr
+	url = https://nymacro@bitbucket.org/nymacro/mathexpr.git
