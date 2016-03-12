@@ -1,7 +1,7 @@
 proc test {test_name test_body} {
     puts "  $test_name"
     set ret [catch {eval $test_body}]
-    if {$ret != 0} { puts stderr "    failed ($ret)" }
+    if {$ret != 0} { puts stderr "    ($ret)" }
 }
 
 proc pending {test_name test_body} {
@@ -11,11 +11,11 @@ proc pending {test_name test_body} {
 }
 
 proc assert {condition} {
-    if {$condition} { } else { puts "    failed condition $condition"; fail }
+    if {$condition} { return 1 } else { puts "    failed condition $condition"; fail }
 }
 
 proc fail {} {
-    puts stderr "    failed test"
+    #puts stderr "    failed test"
     exit 1
 }
 
@@ -28,4 +28,3 @@ proc run {} {
     }
     puts "[llength $test_files] suites"
 }
-

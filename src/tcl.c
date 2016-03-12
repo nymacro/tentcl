@@ -28,7 +28,8 @@ static char *errorReturnStrings[] = {
     "(EXCEPTION) user exception raised",
     "(EXIT) exit exception raised",
     "(BADCMD) invalid command exception raised",
-    "(OOM) out of memory"
+    "(OOM) out of memory",
+    "(INTERRUPT) user interrupt"
 };
 
 static TclReturnInfo returnInfo;

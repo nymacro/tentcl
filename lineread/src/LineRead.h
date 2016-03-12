@@ -23,6 +23,9 @@ struct LineRead {
     LineReadIsComplete isComplete;
     LineReadKeyHandler keyHandler;
 
+    /* user data; does not get freed */
+    void *data;
+
     /* command history */
     List *history;
 
@@ -37,6 +40,7 @@ void LineRead_new(LineRead *self);
 LineRead *LineRead_malloc(void);
 void LineRead_delete(LineRead *self);
 void LineRead_free(LineRead *self);
+void LineRead_setData(LineRead *self, void *data);
 
 void LineRead_addHistory(LineRead *self, char *string);
 char *LineRead_readLine(LineRead *self);

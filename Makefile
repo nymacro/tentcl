@@ -5,7 +5,7 @@ CFLAGS+= -Idstructs/src -Imathexpr/src -Ilineread/src \
          -g -Wall \
          -DWITH_LIBRARIES
 OBJECT= src/value.o \
-        src/tcl.o src/std.o src/ext.o src/tclsh.o
+        src/tcl.o src/std.o src/ext.o src/tclsh.o src/repl.o
 
 #LEAK_CHECK=1
 

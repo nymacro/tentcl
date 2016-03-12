@@ -47,6 +47,8 @@ void LineRead_new(LineRead *self) {
 
     self->isComplete = (LineReadIsComplete)LineRead_isComplete_;
     self->keyHandler = (LineReadKeyHandler)LineRead_keyHandler_;
+
+    self->data = NULL;
 }
 
 /* LineRead_malloc:

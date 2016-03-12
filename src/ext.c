@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "ext.h"
 #include "std.h"
+#include "repl.h"
 #ifdef WITH_LIBRARIES
 #include <dlfcn.h>
 #endif
@@ -250,6 +251,34 @@ TclReturn TclStd_range(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+/*tcl: debug
+ * Create a REPL with the current state
+ */
+TclReturn TclStd_repl(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+    printf(">> Entering REPL\n");
+    TclReturn status = TclRepl_repl(vm, stdin);
+    printf("\n>> Exiting REPL\n");
+    return TCL_OK;
+}
+
+static void valuePrint(BTreeNode *node, void *_unused) {
+    HashPair *pair = (HashPair*)node->data;
+    printf("  %s\n", pair->name);
+}
+
+/*tcl: bindings
+ * Return an array of current bound variables
+ */
+TclReturn TclStd_bindings(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+    printf("VARIABLES\n");
+    Hash_map(vm->variables, valuePrint, NULL);
+
+    printf("FUNCTIONS\n");
+    Hash_map(vm->functions, valuePrint, NULL);
+
+    return TCL_OK;
+}
+
 typedef void (*TclLibraryRegister)(Tcl *vm);
 
 /*tcl: use library
@@ -305,6 +334,9 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "and", TclStd_and);
     Tcl_register(vm, "range", TclStd_range);
     Tcl_register(vm, "use", TclStd_use);
+
+    Tcl_register(vm, "repl", TclStd_repl);
+    Tcl_register(vm, "bindings", TclStd_bindings);
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;

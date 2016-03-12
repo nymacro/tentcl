@@ -34,6 +34,7 @@ enum TclReturn {
     TCL_EXIT,
     TCL_BADCMD,
     TCL_OOM,
+    TCL_INTERRUPT,
     TCL_COUNT
 };
 typedef enum TclReturn TclReturn;
