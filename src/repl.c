@@ -11,10 +11,18 @@
 
 #include "repl.h"
 
-/* Hacky compare function to replace Hash/BTree's standard compare. This is
- * used to find auto-complete */
-static int Hash_BTree_compareN_(BTreeNode *node, void *data) {
-    return strncmp(((HashPair*)node->data)->name, data, strlen(data));
+struct FilterData {
+    List *matches;
+    char *search;
+};
+typedef struct FilterData FilterData;
+
+static void Hash_BTree_filter_(BTreeNode *node, void *data) {
+    FilterData *fd = (FilterData*)data;
+    char *fname = ((HashPair*)node->data)->name; /* function name */
+    if (strncmp(fname, fd->search, strlen(fd->search)) == 0) {
+        List_add(fd->matches, fname);
+    }
 }
 
 #define KEY_LEFT   (char)37
@@ -48,25 +56,34 @@ static int keyHandler(LineRead *self) {
         autoStr[autoLen] = '\0';
         
         /* search for a match */
-        BTreeNodeCompareFunc tmp = vm->functions->tree.compare;
-        vm->functions->tree.compare = Hash_BTree_compareN_;
-        HashPair *pair = Hash_get(vm->functions, autoStr);
-        vm->functions->tree.compare = tmp;
-        
-        /* check if we have a match */
-        if (pair->data) {
+        List *matches = List_malloc();
+        FilterData fd = { matches, autoStr };
+        Hash_map(vm->functions, Hash_BTree_filter_, &fd);
+
+        if (List_size(matches) == 1) {
             /* copy string to buffer and put characters to screen */
-            int completeLen = strlen(pair->name) - autoLen;
-            for (i = strlen(pair->name) - completeLen; i < strlen(pair->name); i++) {
-                self->buf[len - autoLen + i] = pair->name[i];
-                fputc(pair->name[i], stdout);
+            char *name = List_first(matches)->data;
+            int completeLen = strlen(name) - autoLen;
+            for (i = strlen(name) - completeLen; i < strlen(name); i++) {
+                self->buf[len - autoLen + i] = name[i];
+                fputc(name[i], stdout);
             }
             /* move bufp on and add space/null terminate string */
             self->bufp += completeLen;
             self->buf[self->bufp++] = ' ';
             fputc(' ', stdout);
             self->buf[self->bufp] = '\0';
+        } else {
+            /* print matches */
+            printf("\r\f");
+            for (i = 0; i < List_size(matches); i++) {
+                printf("%s ", (char*)List_index(matches, i)->data);
+            }
+            printf("\r\f");
+            printf("> %s", autoStr);
         }
+        List_free(matches);
+
     } else {
         /* add normal character */
         if (self->lastChar == '\b' || self->lastChar == 0x7f) {
