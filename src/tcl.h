@@ -9,7 +9,7 @@
 #include "Hash.h"
 #include "value.h"
 
-#define TENTCL_VERSION "0.8.2-tentcl"
+#define TENTCL_VERSION "0.9.0-tentcl"
 
 extern List mem_list;
 
