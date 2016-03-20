@@ -14,7 +14,7 @@ is rather neatly written. But I am biased.
 For license details, see LICENSE
 
 Aaron Marks
-nymacro AT gmail DOT com
+nymacro *AT* gmail *DOT* com
 
 ## BUILD REQUIREMENTS
 In additional to the Tentcl source code, you will also need the `mathexpr`
@@ -30,13 +30,18 @@ source code, which must be placed in the Tentcl root directory. e.g.
 ```
 
 ## BUILDING
+To build the `tclsh` program, run the following. Run `./tclsh` to run a Tcl REPL, or
+`./tclsh --help` for other execution options.
 
 ```sh
 cd tentcl
-make all test
+make all
 ```
 
 ## LIMITATIONS
-* No non-numerical comparisons for conditionals
+* No non-numerical comparisons for conditionals (`expr` uses `mathexpr`, which does not
+  support non-`int` types)
+* Inefficient (representation of program is stringly-typed like the original Tcl, and
+  everything is always re-processed)
+* No proper testing
 * Everything
-
