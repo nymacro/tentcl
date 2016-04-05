@@ -1,4 +1,3 @@
-#CC=gcc
 LIBS+= -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
        -Llineread -llineread
 CFLAGS+= -Idstructs/src -Imathexpr/src -Ilineread/src \
@@ -6,13 +5,6 @@ CFLAGS+= -Idstructs/src -Imathexpr/src -Ilineread/src \
          -DWITH_LIBRARIES
 OBJECT= src/value.o \
         src/tcl.o src/std.o src/ext.o src/tclsh.o src/repl.o
-
-#LEAK_CHECK=1
-
-ifdef LEAK_CHECK
-CFLAGS+= -DLEAK_CHECK -Ibdwgc/include
-LIBS+= -Lbdwgc/.libs -lgc
-endif
 
 .PHONY: all clean test
 

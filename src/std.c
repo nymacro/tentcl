@@ -127,16 +127,16 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
             TclValue_new(ret, p->data);
         } else {
             printf("can't read \"%s\": no such variable\n", argv[1]);
-	}
+        }
     } else {
         HashPair *p = Hash_get(vm->variables, argv[1]);
-	if (p->data) {
-	    TclValue_set((TclValue*)&p->data, argv[2]);
-	} else {
-	    TclValue value = NULL;
-	    TclValue_new(&value, argv[2]);
-	    p->data = value;
-	}
+        if (p->data) {
+            TclValue_set((TclValue*)&p->data, argv[2]);
+        } else {
+            TclValue value = NULL;
+            TclValue_new(&value, argv[2]);
+            p->data = value;
+        }
 
         TclValue_new(ret, argv[2]); /* set return value */
     }

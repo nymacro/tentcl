@@ -27,8 +27,8 @@ void destroy(void) {
 TclReturn evalFile(char *filename) {
     FILE *fp = fopen(filename, "r");
     if (!fp) {
-	fprintf(stderr, "Error opening file '%s'\n", filename);
-	return TCL_EXCEPTION;
+        fprintf(stderr, "Error opening file '%s'\n", filename);
+        return TCL_EXCEPTION;
     }
     int start = ftell(fp);
     fseek(fp, 0, SEEK_END);
@@ -40,7 +40,7 @@ TclReturn evalFile(char *filename) {
     fread(buf, size, sizeof(char), fp);
     buf[size] = '\0';
     fclose(fp);
-
+    
     TclReturn status;
     TclValue ret = NULL;
     status = Tcl_eval(&tcl, buf, &ret);
@@ -74,11 +74,6 @@ void usage(void) {
 int main(int argc, char *argv[]) {
     TclReturn status = TCL_OK;
     
-    /* Initialize GC */
-#ifdef LEAK_CHECK
-    GC_INIT();
-#endif
-
     /* Initialize tentcl */
     Tcl_new(&tcl);
     atexit(destroy);
@@ -89,60 +84,56 @@ int main(int argc, char *argv[]) {
     int c = 0;
     int option_index = 0;
     while (1) {
-	static struct option long_options[] = {
-	    {"include", required_argument, 0, 0},
-	    {"help", no_argument, 0, 0},
-	    {0, 0, 0, 0}
-	};
-	c = getopt_long(argc, argv, "I:h", long_options, &option_index);
-	if (c == -1) {
-	    break;
-	}
-	switch (c) {
-	case 0: /* long options */
-	    if (strcmp(long_options[option_index].name, "include") == 0) {
-		printf("including %s\n", optarg);
-		status = evalFile(optarg);
-	    } if (strcmp(long_options[option_index].name, "help") == 0) {
-		usage();
-		exit(0);
-	    }
-	    break;
-	case 'I':
-	    status = evalFile(optarg);
-	    break;
-	case 'h':
-	    usage();
-	    exit(0);
-	    break;
-	default:
-	    usage();
-	    exit(1);
-	    break;
-	}
+        static struct option long_options[] = {
+            {"include", required_argument, 0, 0},
+            {"help", no_argument, 0, 0},
+            {0, 0, 0, 0}
+        };
+        c = getopt_long(argc, argv, "I:h", long_options, &option_index);
+        if (c == -1) {
+            break;
+        }
+        switch (c) {
+        case 0: /* long options */
+            if (strcmp(long_options[option_index].name, "include") == 0) {
+                printf("including %s\n", optarg);
+                status = evalFile(optarg);
+            } if (strcmp(long_options[option_index].name, "help") == 0) {
+                usage();
+                exit(0);
+            }
+            break;
+        case 'I':
+            status = evalFile(optarg);
+            break;
+        case 'h':
+            usage();
+            exit(0);
+            break;
+        default:
+            usage();
+            exit(1);
+            break;
+        }
     }
-
+    
     /* Script mode */
     if (optind < argc) {
-	while (optind < argc) {
-	    status = evalFile(argv[optind++]);
-	    if (status != TCL_OK) {
-		return Tcl_statusToCode(status);
-	    }
-	}
-	return Tcl_statusToCode(status);
+        while (optind < argc) {
+            status = evalFile(argv[optind++]);
+            if (status != TCL_OK) {
+                return Tcl_statusToCode(status);
+            }
+        }
+        return Tcl_statusToCode(status);
     }
-
+    
     /* Interactive mode */
     about();
-
+    
     status = TclRepl_repl(&tcl, stdin);
-
+    
     printf("\n");
-#ifdef LEAK_CHECK
-    CHECK_LEAKS();
-#endif
-    printf("\n");
-
+    
     return Tcl_statusToCode(status);
 }

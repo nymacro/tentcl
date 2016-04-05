@@ -197,15 +197,16 @@ TclReturn TclStd_or(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     TclValue tmp = NULL;
     int elmret;
     int i;
-    TclValue_new(&tmp, NULL);
     for (i = 1; i < argc; i++) {
         elmret = Tcl_eval(vm, argv[i], &tmp);
-        if (atoi(tmp)) {
+        if (elmret == TCL_OK && tmp != NULL && atoi(tmp)) {
             break;
         }
     }
-    TclValue_new(ret, tmp);
-    TclValue_delete(&tmp);
+    if (elmret == TCL_OK && tmp != NULL) {
+        TclValue_new(ret, tmp);
+        TclValue_delete(&tmp);
+    }
     return TCL_OK;
 }
 
@@ -219,15 +220,20 @@ TclReturn TclStd_and(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     TclValue tmp = NULL;
     int elmret;
     int i;
-    TclValue_new(&tmp, NULL);
     for (i = 1; i < argc; i++) {
+        if (tmp != NULL) {
+            TclValue_delete(&tmp);
+            tmp = NULL;
+        }
         elmret = Tcl_eval(vm, argv[i], &tmp);
-        if (!atoi(tmp)) {
+        if (elmret == TCL_OK && tmp != NULL && !atoi(tmp)) {
             break;
         }
     }
-    TclValue_new(ret, tmp);
-    TclValue_delete(&tmp);
+    if (elmret == TCL_OK && tmp != NULL) {
+        TclValue_new(ret, tmp);
+        TclValue_delete(&tmp);
+    }
     return TCL_OK;
 }
 
@@ -257,7 +263,7 @@ TclReturn TclStd_range(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 TclReturn TclStd_repl(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     printf(">> Entering REPL\n");
     TclReturn status = TclRepl_repl(vm, stdin);
-    printf("\n>> Exiting REPL\n");
+    printf("\n>> Exiting REPL (%i)\n", status);
     return TCL_OK;
 }
 
