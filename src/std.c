@@ -167,13 +167,19 @@ TclReturn TclStd_unset(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  */
 TclReturn TclStd_exit(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     if (argc == 1)
-	return TCL_EXIT;
+        return TCL_EXIT;
     if (argc == 2) {
-	TclReturnInfo info;
-	info.type = TCL_RI_INT;
-	info.i    = atoi(argv[1]);
-	Tcl_setReturnInfo(info);
-	return TCL_EXIT;
+        TclReturnInfo info;
+        info.type = TCL_RI_INT;
+        info.i    = atoi(argv[1]);
+        Tcl_setReturnInfo(info);
+
+        /* set return value to exit code */
+        char buf[8];
+        snprintf(buf, 8, "%i", info.i);
+        TclValue_new(ret, buf);
+
+        return TCL_EXIT;
     }
     return TCL_BADCMD;
 }
@@ -719,20 +725,20 @@ TclReturn TclStd_catch(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     }
     TclValue evalRet = NULL;
 
-    int status;
+    TclReturn status;
     status = Tcl_eval(vm, argv[1], &evalRet);
     
     /* change value of varName */
     if (argc == 3) {
-	// try to set variable
-        HashPair *p = Hash_get(vm->variables, argv[1]);
-	if (p->data) {
-	    TclValue_set((TclValue*)&p->data, evalRet);
-	} else {
-	    TclValue value = NULL;
-	    TclValue_new(&value, evalRet);
-	    p->data = value;
-	}
+        /* try to set variable */
+        HashPair *p = Hash_get(vm->variables, argv[2]);
+        if (p->data) {
+            TclValue_set((TclValue*)&p->data, evalRet);
+        } else {
+            TclValue value = NULL;
+            TclValue_new(&value, evalRet);
+            p->data = value;
+        }
     }
     
     TclValue_delete(&evalRet);
