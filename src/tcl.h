@@ -80,6 +80,8 @@ int Tcl_isComplete(Tcl *self, char *expr);
 
 int Tcl_statusToCode(TclReturn);
 
+char *Tcl_returnString(TclReturn status);
+
 TclReturnInfo Tcl_getReturnInfo(void);
 void Tcl_setReturnInfo(TclReturnInfo);
 

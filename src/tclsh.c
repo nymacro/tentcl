@@ -25,10 +25,15 @@ void destroy(void) {
 }
 
 TclReturn evalFile(char *filename) {
+    TclReturn status = TCL_OK;
+    char *buf = NULL;
+    TclValue ret = NULL;
     FILE *fp = fopen(filename, "r");
+
     if (!fp) {
         fprintf(stderr, "Error opening file '%s'\n", filename);
-        return TCL_EXCEPTION;
+        status = TCL_EXCEPTION;
+        goto end;
     }
     int start = ftell(fp);
     fseek(fp, 0, SEEK_END);
@@ -36,16 +41,23 @@ TclReturn evalFile(char *filename) {
     int size = end - start;
     fseek(fp, 0, SEEK_SET);
     
-    char *buf = (char*)malloc(sizeof(char) * (size + 1));
+    buf = (char*)malloc(sizeof(char) * (size + 1));
+    if (!buf) {
+        status = TCL_OOM;
+        goto end;
+    }
     fread(buf, size, sizeof(char), fp);
     buf[size] = '\0';
-    fclose(fp);
     
-    TclReturn status;
-    TclValue ret = NULL;
     status = Tcl_eval(&tcl, buf, &ret);
-    TclValue_delete(&ret);
-    free(buf);
+
+end:
+    if (fp)
+        fclose(fp);
+    if (ret)
+        TclValue_delete(&ret);
+    if (buf)
+        free(buf);
     
     return status;
 }
@@ -98,6 +110,10 @@ int main(int argc, char *argv[]) {
             if (strcmp(long_options[option_index].name, "include") == 0) {
                 printf("including %s\n", optarg);
                 status = evalFile(optarg);
+                if (status != TCL_OK) {
+                    fprintf(stderr, "Failed to include file: %s\n", Tcl_returnString(status));
+                    exit(1);
+                }
             } if (strcmp(long_options[option_index].name, "help") == 0) {
                 usage();
                 exit(0);
@@ -105,6 +121,10 @@ int main(int argc, char *argv[]) {
             break;
         case 'I':
             status = evalFile(optarg);
+            if (status != TCL_OK) {
+                fprintf(stderr, "Failed to include file: %s\n", Tcl_returnString(status));
+                exit(1);
+            }
             break;
         case 'h':
             usage();
