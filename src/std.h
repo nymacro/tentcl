@@ -9,7 +9,7 @@
 
 struct TclUserFunction {
     List *args;
-    TclValue code;
+    TclValue *code;
 };
 typedef struct TclUserFunction TclUserFunction;
 
@@ -17,6 +17,6 @@ extern Hash *functions;
 
 void TclStd_register(Tcl*);
 
-TclReturn TclStd_userFuncall(Tcl*, int, char*[], TclValue*);
+TclReturn TclStd_userFuncall(Tcl*, int, TclValue*[], TclValue*);
 
 #endif

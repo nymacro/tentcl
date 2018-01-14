@@ -13,3 +13,17 @@ test "catch2" {
     assert "$err == 5"
     assert "$ret == 1"
 }
+
+set upvar_test_var 100
+test "upvar" {
+    upvar upvar_test_var v
+    assert "$v == 100"
+
+    set i 100
+    proc my_set {name value} {
+        upvar $name v
+        set v $value
+    }
+    my_set i 200
+    assert "$i == 200"
+}

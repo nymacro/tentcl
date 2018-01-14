@@ -136,10 +136,11 @@ LineRead *TclRepl_readerMalloc(Tcl *vm) {
 
 /* Read-Eval-Print-Loop */
 TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
-    char *prompt = Tcl_getVariable(vm, "tcl_prompt1");
-    if (!prompt)
-        prompt = "% ";
-    
+    TclValue *promptVar = Tcl_getVariable(vm, "tcl_prompt1");
+    char *prompt = "% ";
+    if (promptVar && promptVar->container)
+        prompt = promptVar->container->value;
+
 #ifdef NO_LINEREAD
     char line[1024];
     printf("%s", prompt);
@@ -153,26 +154,27 @@ TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
     if (line)
         LineRead_addHistory(lr, line);
 #endif
-    
+
     if (feof(stdin) || !line) {
         return TCL_OK;
     }
     TclReturn status = TCL_OK;
-    TclValue ret = NULL;
-    status = Tcl_eval(vm, line, &ret);
+    TclValue *ret = NULL;
+    TclValue_new(&ret, NULL);
+    status = Tcl_eval(vm, line, ret);
     // shell command execution if command doesn't exist
     if (status == TCL_BADCMD) {
-        char *interactive = Tcl_getVariable(vm, "tcl_interactive");
-        if (interactive && atoi(interactive)) {
+        TclValue *interactive = Tcl_getVariable(vm, "tcl_interactive");
+        if (interactive && TclValue_int(interactive)) {
             printf("trying to execute external command\n");
             system(line);
         }
     } else if (status == TCL_EXIT || status == TCL_INTERRUPT) {
-        TclValue_delete(&ret);
+        TclValue_delete(ret);
         return status;
     }
-    printf("-> %s\n", (ret == NULL) ? "NULL" : ret);
-    TclValue_delete(&ret);
+    printf("-> %s\n", (ret->container == NULL) ? "NULL" : ret->container->value);
+    TclValue_delete(ret);
 
     return TclRepl_repl_(vm, input, lr); /* hope your compiler does TCO */
 }

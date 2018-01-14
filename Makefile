@@ -4,7 +4,7 @@ CFLAGS+= -Idstructs/src -Imathexpr/src -Ilineread/src \
          -g -Wall \
          -DWITH_LIBRARIES
 OBJECT= src/value.o \
-        src/tcl.o src/std.o src/ext.o src/tclsh.o src/repl.o
+        src/tcl.o src/std.o src/tclsh.o src/repl.o # src/ext.o
 
 .PHONY: all clean test
 

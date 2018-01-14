@@ -56,7 +56,7 @@ struct TclReturnInfo {
 };
 typedef struct TclReturnInfo TclReturnInfo;
 
-typedef TclReturn (*TclFunction)(Tcl*, int, TclValue[], TclValue*);
+typedef TclReturn (*TclFunction)(Tcl*, int, TclValue*[], TclValue*);
 
 /* Tcl Init/Free functions */
 void Tcl_new(Tcl*);
@@ -67,20 +67,22 @@ void Tcl_free(Tcl *self);
 /* Tcl Functions */
 TclReturn Tcl_evalExpression(Tcl*, char*, TclValue*);
 TclReturn Tcl_eval(Tcl*, char*, TclValue*);
-TclReturn Tcl_funcall(Tcl*, char*, int, TclValue[], TclValue*);
-TclValue Tcl_expand(Tcl*, char*);
-void Tcl_split(Tcl*, TclValue, char*, List*);
+TclReturn Tcl_funcall(Tcl*, char*, int, TclValue*[], TclValue*);
+TclValue* Tcl_expand(Tcl*, char*);
+void Tcl_split(Tcl*, char*, char*, List*);
 void Tcl_splitCommands(Tcl *, TclValue, List *);
 void Tcl_register(Tcl*, char*, TclFunction);
 void Tcl_addVariable(Tcl *self, char *name, char *value);
+void Tcl_addVariable_(Tcl *self, char *name, TclValue *val);
 void Tcl_pushNamespace(Tcl *self);
 void Tcl_popNamespace(Tcl *self);
-char *Tcl_getVariable(Tcl *self, char *name);
+TclValue *Tcl_getVariable(Tcl *self, char *name);
+TclValue *Tcl_getVariableUp(Tcl *self, char *name, int level);
 int Tcl_isComplete(Tcl *self, char *expr);
 
 int Tcl_statusToCode(TclReturn);
 
-char *Tcl_returnString(TclReturn status);
+const char *Tcl_returnString(TclReturn status);
 
 TclReturnInfo Tcl_getReturnInfo(void);
 void Tcl_setReturnInfo(TclReturnInfo);

@@ -27,8 +27,10 @@ void destroy(void) {
 TclReturn evalFile(char *filename) {
     TclReturn status = TCL_OK;
     char *buf = NULL;
-    TclValue ret = NULL;
+    TclValue *ret = NULL;
     FILE *fp = fopen(filename, "r");
+
+    TclValue_new(&ret, NULL);
 
     if (!fp) {
         fprintf(stderr, "Error opening file '%s'\n", filename);
@@ -49,13 +51,13 @@ TclReturn evalFile(char *filename) {
     fread(buf, size, sizeof(char), fp);
     buf[size] = '\0';
     
-    status = Tcl_eval(&tcl, buf, &ret);
+    status = Tcl_eval(&tcl, buf, ret);
 
 end:
     if (fp)
         fclose(fp);
     if (ret)
-        TclValue_delete(&ret);
+        TclValue_delete(ret);
     if (buf)
         free(buf);
     
@@ -90,7 +92,7 @@ int main(int argc, char *argv[]) {
     Tcl_new(&tcl);
     atexit(destroy);
     TclStd_register(&tcl);
-    TclExt_register(&tcl);
+    // TclExt_register(&tcl);
     
     /* Parse command line params */
     int c = 0;
