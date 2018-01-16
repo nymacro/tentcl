@@ -1,6 +1,6 @@
 /*
  * dstructs -- Name/Value Hash Table
- * Copyright (C) 2006-2015 Aaron Marks
+ * Copyright (C) 2006-2018 Aaron Marks
  */
 #ifndef DSTRUCTS_HASH_H
 #define DSTRUCTS_HASH_H

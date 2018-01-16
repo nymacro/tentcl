@@ -1,6 +1,6 @@
 /*
  * dstructs -- Skip List
- * Copyright (C) 2006-2015 Aaron Marks
+ * Copyright (C) 2006-2018 Aaron Marks
  */
 #ifndef DSTRUCTS_SKIPLIST_H
 #define DSTRUCTS_SKIPLIST_H

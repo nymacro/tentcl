@@ -1,6 +1,6 @@
 /*
  * dstructs -- Main header
- * Copyright (C) 2006-2015 Aaron Marks
+ * Copyright (C) 2006-2018 Aaron Marks
  */
 #ifndef DSTRUCTS_DSTRUCTS_H
 #define DSTRUCTS_DSTRUCTS_H

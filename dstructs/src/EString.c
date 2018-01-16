@@ -1,6 +1,6 @@
 /*
  * dstructs -- Expandable String
- * Copyright (C) 2006-2015 Aaron Marks
+ * Copyright (C) 2006-2018 Aaron Marks
  */
 
 #include "EString.h"

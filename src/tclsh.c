@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Shell
- * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2018 Aaron Marks. All Rights Reserved.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -65,7 +65,7 @@ end:
 }
 
 void about(void) {
-    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2015 Aaron Marks. All Rights Reserved.\n"
+    printf("tentcl interactive shell " TENTCL_VERSION "\n\tCopyright (C) 2006-2018 Aaron Marks. All Rights Reserved.\n"
            "Features: "
 #ifndef NO_LINEREAD
            "lineread "

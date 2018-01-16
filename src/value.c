@@ -1,6 +1,6 @@
 /*
  * Tentcl -- Built-in Types
- * Copyright (C) 2006-2015 Aaron Marks. All Rights Reserved.
+ * Copyright (C) 2006-2018 Aaron Marks. All Rights Reserved.
  */
 #include "value.h"
 #include <stdio.h>
