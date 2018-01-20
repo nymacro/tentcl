@@ -98,6 +98,7 @@ static BTreeNode **BTree_add_(BTree *tree, BTreeNode **node, void *data) {
 void BTree_add(BTree *tree, void *data) {
     BTreeNode **pos = BTree_add_(tree, &tree->head, data);
     *pos = (BTreeNode*)malloc(sizeof(BTreeNode));
+    memset(*pos, 0, sizeof(BTreeNode));
     (*pos)->left = NULL;
     (*pos)->right = NULL;
     tree->alloc(*pos, data);

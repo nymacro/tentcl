@@ -64,6 +64,7 @@ void List_delete(List *list) {
  */
 List *List_malloc(void) {
     List *self = (List *) malloc(sizeof(List));
+    memset(self, 0, sizeof(List));
     List_new(self);
     return self;
 }
@@ -138,12 +139,14 @@ void List_add(List *list, void *data) {
 void List_push(List *list, void *data) {
     if (!list->head) {
         list->head = (ListNode*)malloc(sizeof(ListNode));
+        memset(list->head, 0, sizeof(ListNode));
         list->head->prev = NULL;
         list->head->next = NULL;
         list->alloc(list->head, data);
         list->tail = list->head;
     } else if (list->tail) {
         list->tail->next = (ListNode*)malloc(sizeof(ListNode));
+        memset(list->tail->next, 0, sizeof(ListNode));
         list->tail->next->prev = list->tail;
         list->tail->next->next = NULL;
         list->alloc(list->tail->next, data);

@@ -131,15 +131,16 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         }
     } else {
         HashPair *p = Hash_get(vm->variables, TclValue_str(argv[1]));
+        TclValue *value = NULL;
         if (p->data) {
-            TclValue_set((TclValue*)p->data, TclValue_str(argv[2]));
+            value = p->data;
+            TclValue_set(value, TclValue_str(argv[2]));
         } else {
-            TclValue *value = NULL;
             TclValue_new(&value, TclValue_str(argv[2]));
             p->data = value;
         }
 
-        TclValue_set(ret, TclValue_str(argv[2])); /* set return value */
+        TclValue_replace(ret, value); /* set return value */
     }
     return TCL_OK;
 }
@@ -232,6 +233,7 @@ TclReturn TclStd_expr(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
     TclValue *value = TclStd_expression(vm, combined);
     TclValue_replace(ret, value);
+    TclValue_delete(value);
     return TCL_OK;
 }
 
@@ -734,10 +736,10 @@ TclReturn TclStd_catch(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         /* try to set variable */
         HashPair *p = Hash_get(vm->variables, TclValue_str(argv[2]));
         if (p->data) {
-            TclValue_set((TclValue*)p->data, TclValue_str(evalRet));
+            TclValue_replace((TclValue*)p->data, evalRet);
         } else {
             TclValue *value = NULL;
-            TclValue_new(&value, TclValue_str(evalRet));
+            TclValue_new_ref(&value, evalRet);
             p->data = value;
         }
     }

@@ -42,7 +42,7 @@ TclReturn evalFile(char *filename) {
     int end = ftell(fp);
     int size = end - start;
     fseek(fp, 0, SEEK_SET);
-    
+
     buf = (char*)malloc(sizeof(char) * (size + 1));
     if (!buf) {
         status = TCL_OOM;
@@ -50,7 +50,7 @@ TclReturn evalFile(char *filename) {
     }
     fread(buf, size, sizeof(char), fp);
     buf[size] = '\0';
-    
+
     status = Tcl_eval(&tcl, buf, ret);
 
 end:
@@ -60,7 +60,7 @@ end:
         TclValue_delete(ret);
     if (buf)
         free(buf);
-    
+
     return status;
 }
 
@@ -149,13 +149,13 @@ int main(int argc, char *argv[]) {
         }
         return Tcl_statusToCode(status);
     }
-    
+
     /* Interactive mode */
     about();
-    
+
     status = TclRepl_repl(&tcl, stdin);
-    
+
     printf("\n");
-    
+
     return Tcl_statusToCode(status);
 }

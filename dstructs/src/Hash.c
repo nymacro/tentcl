@@ -88,6 +88,7 @@ HashPair* Hash_get(Hash *hash, char *name) {
         return p->data;
     } else {
         HashPair *pair = (HashPair*)malloc(sizeof(HashPair));
+        memset(pair, 0, sizeof(HashPair));
         pair->self = hash;
         pair->name = strdup(name);
         pair->data = NULL;

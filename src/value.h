@@ -28,5 +28,6 @@ void TclValue_prepend(TclValue *, char*); /* Prepend string to start of value */
 
 char *TclValue_str(TclValue *v);
 int TclValue_int(TclValue *v);
+int TclValue_null(TclValue *v);
 
 #endif

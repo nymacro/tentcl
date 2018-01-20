@@ -22,7 +22,7 @@ static List dlls;
 /*tcl: info
  * Prints out an information summary of the program state.
  */
-TclReturn TclStd_info(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_info(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     printf(TENTCL_VERSION "\n");
     /*printf("Variables in existence:  %i\n", List_size(vm->variables->list));*/
     /*printf("Commands in existence:   %i\n", List_size(vm->functions.list));*/
@@ -36,27 +36,26 @@ TclReturn TclStd_info(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * Returns an anonymous function. Used like proc except with name argument
  * left out.
  */
-TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     static int count = 0; // unique id returned for lambda
     if (argc != 3) {
         return TCL_EXCEPTION;
     }
 
     char lambdaName[256];
-    snprintf(lambdaName, 255, "__lambda_%i", count);
-    lambdaName[255] = 0;
+    snprintf(lambdaName, sizeof(lambdaName), "__lambda_%i", count);
     count++;
 
     TclUserFunction *f = (TclUserFunction*)malloc(sizeof(TclUserFunction));
     f->args = List_malloc();
-    Tcl_split(vm, argv[1], " \t\n", f->args);
+    Tcl_split(vm, TclValue_str(argv[1]), " \t\n", f->args);
 
-    TclValue_new(&f->code, argv[2]);
+    TclValue_new(&f->code, TclValue_str(argv[2]));
     Hash_get(functions, lambdaName)->data = f;
 
     Tcl_register(vm, lambdaName, TclStd_userFuncall);
 
-    TclValue_new(ret, lambdaName);
+    TclValue_set(ret, lambdaName);
 
     List_push(&lambdas, f);
 
@@ -66,7 +65,7 @@ TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 /*tcl: add num ?num ...?
  * Returns the sum of all arguments
  */
-TclReturn TclStd_add(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_add(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
@@ -75,82 +74,82 @@ TclReturn TclStd_add(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
     int i;
 
     for (i = 1; i < argc; i++) {
-        sum += atoi(argv[i]);
+        sum += TclValue_int(argv[i]);
     }
-    sprintf(result, "%i", sum);
-    TclValue_new(ret, result);
+    snprintf(result, sizeof(result), "%i", sum);
+    TclValue_set(ret, result);
     return TCL_OK;
 }
 
 /*tcl: sub num num ?num ...?
  * Returns the inverse sum of all arguments
  */
-TclReturn TclStd_sub(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_sub(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 3) {
         return TCL_EXCEPTION;
     }
     char result[32];
-    int sum = atoi(argv[1]);
+    int sum = TclValue_int(argv[1]);
     int i;
 
     for (i = 2; i < argc; i++) {
-        sum -= atoi(argv[i]);
+        sum -= TclValue_int(argv[i]);
     }
-    sprintf(result, "%i", sum);
-    TclValue_new(ret, result);
+    snprintf(result, sizeof(result), "%i", sum);
+    TclValue_set(ret, result);
     return TCL_OK;
 }
 
 /*tcl: mul num num ?num ...?
  * Returns the product of all arguments
  */
-TclReturn TclStd_mul(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_mul(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
     char result[32];
-    int sum = atoi(argv[1]);
+    int sum = TclValue_int(argv[1]);
     int i;
 
     for (i = 2; i < argc; i++) {
-        sum *= atoi(argv[i]);
+        sum *= TclValue_int(argv[i]);
     }
     sprintf(result, "%i", sum);
-    TclValue_new(ret, result);
+    TclValue_set(ret, result);
     return TCL_OK;
 }
 
 /*tcl: div num num ?num ...?
  * Returns the quotient of all arguments
  */
-TclReturn TclStd_div(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_div(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
     char result[32];
-    int sum = atoi(argv[1]);
+    int sum = TclValue_int(argv[1]);
     int i;
 
     for (i = 2; i < argc; i++) {
-        sum /= atoi(argv[i]);
+        sum /= TclValue_int(argv[i]);
     }
     sprintf(result, "%i", sum);
-    TclValue_new(ret, result);
+    TclValue_set(ret, result);
     return TCL_OK;
 }
 
 /*tcl: eql num num
  * Returns 1 (true) if both arguments are equal, false otherwise.
  */
-TclReturn TclStd_eql(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_eql(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
         return TCL_EXCEPTION;
     }
-    int first = atoi(argv[1]);
-    int second = atoi(argv[2]);
+    int first = TclValue_int(argv[1]);
+    int second = TclValue_int(argv[2]);
     char result[32];
     sprintf(result, "%i", first == second);
-    TclValue_new(ret, result);
+    TclValue_set(ret, result);
     return TCL_OK;
 }
 
@@ -158,15 +157,15 @@ TclReturn TclStd_eql(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * Returns 1 (true) if first argument is greater than second argument, false
  * otherwise.
  */
-TclReturn TclStd_gt(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_gt(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
         return TCL_EXCEPTION;
     }
-    int first = atoi(argv[1]);
-    int second = atoi(argv[2]);
+    int first = TclValue_int(argv[1]);
+    int second = TclValue_int(argv[2]);
     char result[32];
     sprintf(result, "%i", first > second);
-    TclValue_new(ret, result);
+    TclValue_set(ret, result);
     return TCL_OK;
 }
 
@@ -174,15 +173,15 @@ TclReturn TclStd_gt(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * Returns 1 (true) if first argument is lesser than second argument, false
  * otherwise.
  */
-TclReturn TclStd_lt(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_lt(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
         return TCL_EXCEPTION;
     }
-    int first = atoi(argv[1]);
-    int second = atoi(argv[2]);
+    int first = TclValue_int(argv[1]);
+    int second = TclValue_int(argv[2]);
     char result[32];
     sprintf(result, "%i", first < second);
-    TclValue_new(ret, result);
+    TclValue_set(ret, result);
     return TCL_OK;
 }
 
@@ -190,66 +189,67 @@ TclReturn TclStd_lt(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
  * Logical or with short-circuit evaluation, returns the result of the last
  * true expression.
  */
-TclReturn TclStd_or(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_or(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
-    TclValue tmp = NULL;
+    TclValue *tmp = NULL;
     int elmret;
     int i;
+    TclValue_new(&tmp, NULL);
     for (i = 1; i < argc; i++) {
-        elmret = Tcl_eval(vm, argv[i], &tmp);
-        if (elmret == TCL_OK && tmp != NULL && atoi(tmp)) {
+        elmret = Tcl_eval(vm, TclValue_str(argv[i]), tmp);
+        if (elmret == TCL_OK && tmp != NULL && TclValue_int(tmp)) {
             break;
         }
     }
     if (elmret == TCL_OK && tmp != NULL) {
-        TclValue_new(ret, tmp);
-        TclValue_delete(&tmp);
+        TclValue_replace(ret, tmp);
     }
+    TclValue_delete(tmp);
     return TCL_OK;
 }
 
 /*tcl: and expr ?expr ...?
  * Logical and, returning the result of the last expression evaluated.
  */
-TclReturn TclStd_and(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_and(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     }
-    TclValue tmp = NULL;
+    TclValue *tmp = NULL;
     int elmret;
     int i;
+    TclValue_new(&tmp, NULL);
     for (i = 1; i < argc; i++) {
         if (tmp != NULL) {
-            TclValue_delete(&tmp);
-            tmp = NULL;
+            TclValue_set(tmp, NULL);
         }
-        elmret = Tcl_eval(vm, argv[i], &tmp);
-        if (elmret == TCL_OK && tmp != NULL && !atoi(tmp)) {
+        elmret = Tcl_eval(vm, TclValue_str(argv[i]), tmp);
+        if (elmret == TCL_OK && tmp != NULL && !TclValue_int(tmp)) {
             break;
         }
     }
     if (elmret == TCL_OK && tmp != NULL) {
-        TclValue_new(ret, tmp);
-        TclValue_delete(&tmp);
+        TclValue_replace(ret, tmp);
     }
+    TclValue_delete(tmp);
     return TCL_OK;
 }
 
 /*tcl: range num num
  * Return a range of number in a list.
  */
-TclReturn TclStd_range(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_range(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
         return TCL_EXCEPTION;
     }
     int i;
     int incr = 1;
     char result[32];
-    if (atoi(argv[2]) < atoi(argv[1]))
+    if (TclValue_int(argv[2]) < TclValue_int(argv[1]))
         incr = -1;
-    for (i = atoi(argv[1]); i != atoi(argv[2]) + incr; i += incr) {
+    for (i = TclValue_int(argv[1]); i != TclValue_int(argv[2]) + incr; i += incr) {
         sprintf(result, "%i", i);
         TclValue_append(ret, result);
         TclValue_append(ret, " ");
@@ -260,7 +260,7 @@ TclReturn TclStd_range(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 /*tcl: debug
  * Create a REPL with the current state
  */
-TclReturn TclStd_repl(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_repl(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     printf(">> Entering REPL\n");
     TclReturn status = TclRepl_repl(vm, stdin);
     printf("\n>> Exiting REPL (%i)\n", status);
@@ -275,7 +275,7 @@ static void valuePrint(BTreeNode *node, void *_unused) {
 /*tcl: bindings
  * Return an array of current bound variables
  */
-TclReturn TclStd_bindings(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_bindings(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     printf("VARIABLES\n");
     Hash_map(vm->variables, valuePrint, NULL);
 
@@ -290,13 +290,13 @@ typedef void (*TclLibraryRegister)(Tcl *vm);
 /*tcl: use library
  * Load a Tentcl shared library
  */
-TclReturn TclStd_use(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
+TclReturn TclStd_use(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 2) {
         printf("wrong number of arguments\n");
         return TCL_EXCEPTION;
     }
 #ifdef WITH_LIBRARIES
-    void *dll = dlopen(argv[1], RTLD_NOW);
+    void *dll = dlopen(TclValue_str(argv[1]), RTLD_NOW);
     if (!dll) {
         printf("%s\n", dlerror());
         return TCL_EXCEPTION;
@@ -306,7 +306,7 @@ TclReturn TclStd_use(Tcl *vm, int argc, TclValue argv[], TclValue *ret) {
 #else
     puts("use not supported\n");
 #endif
-    TclValue_new(ret, "loaded");
+    TclValue_set(ret, "loaded");
     return TCL_OK;
 }
 

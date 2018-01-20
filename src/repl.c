@@ -138,8 +138,8 @@ LineRead *TclRepl_readerMalloc(Tcl *vm) {
 TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
     TclValue *promptVar = Tcl_getVariable(vm, "tcl_prompt1");
     char *prompt = "% ";
-    if (promptVar && promptVar->container)
-        prompt = promptVar->container->value;
+    if (!TclValue_null(promptVar))
+        prompt = TclValue_str(promptVar);
 
 #ifdef NO_LINEREAD
     char line[1024];
@@ -173,7 +173,7 @@ TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
         TclValue_delete(ret);
         return status;
     }
-    printf("-> %s\n", (ret->container == NULL) ? "NULL" : ret->container->value);
+    printf("-> %s\n", TclValue_str(ret));
     TclValue_delete(ret);
 
     return TclRepl_repl_(vm, input, lr); /* hope your compiler does TCO */

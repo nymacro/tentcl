@@ -1,10 +1,13 @@
+SAN_FLAGS+= # -fsanitize=address -fno-omit-frame-pointer # -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
 LIBS+= -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
        -Llineread -llineread
 CFLAGS+= -Idstructs/src -Imathexpr/src -Ilineread/src \
          -g -Wall \
-         -DWITH_LIBRARIES
+         -DWITH_LIBRARIES \
+         $(SAN_FLAGS)
+EXEFLAGS+= $(SAN_FLAGS)
 OBJECT= src/value.o \
-        src/tcl.o src/std.o src/tclsh.o src/repl.o # src/ext.o
+        src/tcl.o src/std.o src/tclsh.o src/repl.o src/ext.o
 
 .PHONY: all clean test
 
@@ -44,7 +47,7 @@ bindings_clean:
 	-make -C bindings clean
 
 tclsh: $(OBJECT)
-	$(CC) -o tclsh $(OBJECT) $(LIBS)
+	$(CC) $(EXEFLAGS) -o tclsh $(OBJECT) $(LIBS)
 
 .c.o:
 	$(CC) -o $@ -c $< $(CFLAGS)

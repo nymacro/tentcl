@@ -11,6 +11,20 @@
 
 #include "common.h"
 
+static void TclValue_unref_(TclValue *value) {
+    if (value->container)
+    {
+        --value->container->ref;
+        if (value->container->ref == 0) {
+            if (value->container->value) {
+                free(value->container->value);
+                free(value->container);
+                value->container = NULL;
+            }
+        }
+    }
+}
+
 void TclValue_new(TclValue **value, char *init) {
 #ifdef DEBUG
     printf("TclValue_new: Creating new variable (initial value provided=%i)\n", init?1:0);
@@ -34,14 +48,8 @@ void TclValue_delete(TclValue *value) {
         return;
     if (value->container)
     {
-        --value->container->ref;
-        if (value->container->ref == 0) {
-            if (value->container->value) {
-                free(value->container->value);
-                free(value->container);
-            }
-            free(value);
-        }
+        TclValue_unref_(value);
+        free(value);
     }
 }
 
@@ -58,15 +66,19 @@ void TclValue_ref(TclValue *value) {
 }
 
 void TclValue_set(TclValue *value, char *data) {
-    if (value->container)
-        free(value->container->value);
-    else
-    {
+    if (!value->container) {
         value->container = (struct TclValueRef*)malloc(sizeof(struct TclValueRef));
+        value->container->value = NULL;
         value->container->ref = 1;
     }
-
-    value->container->value = strdup(data);
+    if (value->container->value) {
+        free(value->container->value);
+    }
+    if (data) {
+        value->container->value = strdup(data);
+    } else {
+        value->container->value = NULL;
+    }
 }
 
 void TclValue_set_(TclValue *value, char *data) {
@@ -76,8 +88,7 @@ void TclValue_set_(TclValue *value, char *data) {
 }
 
 void TclValue_replace(TclValue *value, TclValue *value2) {
-    if (value->container)
-        free(value->container->value);
+    TclValue_unref_(value);
     TclValue_ref(value2);
     value->container = value2->container;
 }
@@ -114,7 +125,7 @@ void TclValue_prepend(TclValue *value, char *data) {
 /* } */
 
 char *TclValue_str(TclValue *v) {
-    static char empty[] = "";
+    static char empty[] = "NULL";
     if (v->container)
         return v->container->value;
     else
@@ -126,4 +137,10 @@ int TclValue_int(TclValue *v) {
         return atoi(v->container->value);
     else
         return 0;
+}
+
+int TclValue_null(TclValue *v) {
+    if (v->container == NULL || (v->container && v->container->value == NULL))
+        return 1;
+    return 0;
 }
