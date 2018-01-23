@@ -15,6 +15,7 @@
 #include "Hash.h"
 #include "std.h"
 #include "ext.h"
+#include "regexp.h"
 
 #include "common.h"
 
@@ -87,13 +88,14 @@ void usage(void) {
 
 int main(int argc, char *argv[]) {
     TclReturn status = TCL_OK;
-    
+
     /* Initialize tentcl */
     Tcl_new(&tcl);
     atexit(destroy);
     TclStd_register(&tcl);
-    // TclExt_register(&tcl);
-    
+    TclExt_register(&tcl);
+    TclRegexp_register(&tcl);
+
     /* Parse command line params */
     int c = 0;
     int option_index = 0;

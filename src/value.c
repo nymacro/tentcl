@@ -81,6 +81,13 @@ void TclValue_set(TclValue *value, char *data) {
     }
 }
 
+void TclValue_set_raw(TclValue *value, char *data, size_t len) {
+    TclValue_set(value, NULL);
+    value->container->value = (char*)malloc(sizeof(char)*len+1);
+    memcpy(value->container->value, data, len);
+    value->container->value[len] = 0;
+}
+
 void TclValue_set_(TclValue *value, char *data) {
     if (value->container->value)
         free(value->container->value);

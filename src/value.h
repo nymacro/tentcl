@@ -5,6 +5,8 @@
 #ifndef TENTCL_VALUE_H
 #define TENTCL_VALUE_H
 
+#include <string.h>
+
 struct TclValueRef {
         char *value;      /* Stringly typed */
         unsigned int ref; /* Reference count */
@@ -20,6 +22,7 @@ void TclValue_new_ref(TclValue **, TclValue *); /* New value referencing existin
 void TclValue_delete(TclValue*); /* Destroy Tcl value */
 void TclValue_ref(TclValue *); /* Increment reference count on value */
 void TclValue_set(TclValue*, char*); /* Set Tcl value */
+void TclValue_set_raw(TclValue *value, char *data, size_t len);
 void TclValue_replace(TclValue*, TclValue*); /* Replace existing value */
 void TclValue_append(TclValue *, char*); /* Append string to end of value */
 void TclValue_prepend(TclValue *, char*); /* Prepend string to start of value */
