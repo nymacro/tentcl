@@ -89,6 +89,8 @@ TclValue *TclStd_expression(Tcl *vm, TclValue *expression) {
 TclReturn TclStd_puts(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     int nonewline = 0;
     int i = 1;
+    FILE *fp = stdout;
+
     if (argc > 4) {
         return TCL_EXCEPTION;
     }
@@ -104,14 +106,15 @@ TclReturn TclStd_puts(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
             fprintf(stderr, "Stream '%s' does not exist\n", TclValue_str(argv[i]));
             return TCL_EXCEPTION;
         }
-        fputs(TclValue_str(argv[++i]), p->data);
-        if (!nonewline)
-            fputc('\n', p->data);
+        fp = (FILE*)p->data;
+        fputs(TclValue_str(argv[++i]), fp);
     } else if (argc - nonewline == 2) {
-        fputs(TclValue_str(argv[i]), stdout);
-        if (!nonewline)
-            fputc('\n', stdout);
+        fputs(TclValue_str(argv[i]), fp);
     }
+
+    if (!nonewline)
+        fputc('\n', fp);
+
     return TCL_OK;
 }
 
@@ -123,21 +126,20 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
         return TCL_EXCEPTION;
     } else if (argc < 3) {
-        HashPair *p = Hash_get(vm->variables, TclValue_str(argv[1]));
-        if (p->data) {
-            TclValue_replace(ret, p->data);
+        TclValue *value = Tcl_getVariable(vm, TclValue_str(argv[1]));
+        if (value) {
+            TclValue_set(ret, TclValue_str(value));
         } else {
             printf("can't read \"%s\": no such variable\n", TclValue_str(argv[1]));
+            return TCL_EXCEPTION;
         }
     } else {
-        HashPair *p = Hash_get(vm->variables, TclValue_str(argv[1]));
-        TclValue *value = NULL;
-        if (p->data) {
-            value = p->data;
+        TclValue *value = Tcl_getVariable(vm, TclValue_str(argv[1]));
+        if (value) {
             TclValue_set(value, TclValue_str(argv[2]));
         } else {
             TclValue_new(&value, TclValue_str(argv[2]));
-            p->data = value;
+            Tcl_addVariable_(vm, TclValue_str(argv[1]), value);
         }
 
         TclValue_replace(ret, value); /* set return value */
@@ -734,13 +736,13 @@ TclReturn TclStd_catch(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     /* change value of varName */
     if (argc == 3) {
         /* try to set variable */
-        HashPair *p = Hash_get(vm->variables, TclValue_str(argv[2]));
-        if (p->data) {
-            TclValue_replace((TclValue*)p->data, evalRet);
+        TclValue *value = NULL;
+        value = Tcl_getVariable(vm, TclValue_str(argv[2]));
+        if (value) {
+            TclValue_set(value, TclValue_str(evalRet));
         } else {
-            TclValue *value = NULL;
             TclValue_new_ref(&value, evalRet);
-            p->data = value;
+            Tcl_addVariable_(vm, TclValue_str(argv[2]), value);
         }
     }
 
@@ -765,7 +767,6 @@ TclReturn TclStd_upvar(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         level = TclValue_int(argv[1]);
         if (level < 0)
             return TCL_EXCEPTION;
-        printf("Upvaring %i levels\n", level);
 
         name = TclValue_str(argv[2]);
         newName = TclValue_str(argv[3]);

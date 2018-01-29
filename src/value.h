@@ -7,10 +7,10 @@
 
 #include <string.h>
 
-struct TclValueRef {
-        char *value;      /* Stringly typed */
-        unsigned int ref; /* Reference count */
-};
+typedef struct TclValueRef{
+    char *value;      /* Stringly typed */
+    unsigned int ref; /* Reference count */
+} TclValueRef;
 struct TclValue {
     struct TclValueRef *container;
 };

@@ -138,7 +138,7 @@ LineRead *TclRepl_readerMalloc(Tcl *vm) {
 TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
     TclValue *promptVar = Tcl_getVariable(vm, "tcl_prompt1");
     char *prompt = "% ";
-    if (!TclValue_null(promptVar))
+    if (promptVar && !TclValue_null(promptVar))
         prompt = TclValue_str(promptVar);
 
 #ifdef NO_LINEREAD

@@ -83,6 +83,7 @@ void usage(void) {
            "\n"
            "Options:\n"
            "\t-I<source>     --include=<source>     include source before executing script or shell\n"
+           "\t-h             --help                 print this message\n"
            "                                        \n");
 }
 
@@ -140,7 +141,7 @@ int main(int argc, char *argv[]) {
             break;
         }
     }
-    
+
     /* Script mode */
     if (optind < argc) {
         while (optind < argc) {

@@ -138,16 +138,16 @@ static void Hash_variables_dealloc_(HashPair *pair) {
  */
 void Tcl_new(Tcl *vm) {
     vm->namespace = List_malloc();
-    
+
     vm->variables = Hash_malloc();
     vm->variables->dealloc = Hash_variables_dealloc_;
-    
+
     vm->functions = Hash_malloc();
-    
+
     List_push(vm->namespace, vm->variables);
-    
+
     /* Tcl related variables */
-    
+
     Tcl_addVariable(vm, "tcl_version", TENTCL_VERSION);
     Tcl_addVariable(vm, "tcl_prompt1", "% ");
     Tcl_addVariable(vm, "tcl_prompt2", "> ");
@@ -521,7 +521,7 @@ TclValue *Tcl_getVariableUp(Tcl *self, char *name, int level) {
         /* try until we find something */
         TclValue *v = Tcl_getVariable(self, name);
         int i = List_size(self->namespace);
-        while (v == NULL && i >= 0) {
+        while (v == NULL && i > 0) {
             v = Tcl_getVariableUp(self, name, i--);
         }
         return v;
