@@ -5,6 +5,7 @@
 #include "BTree.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * BTree_compare_: default comparator, like List_compare_

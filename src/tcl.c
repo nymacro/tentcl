@@ -57,21 +57,21 @@ int Tcl_statusToCode(TclReturn status) {
     case TCL_RETURN:
     case TCL_BREAK:
     case TCL_CONTINUE:
-	return 0;
+        return 0;
     case TCL_EXCEPTION:
-	return 1;
+        return 1;
     case TCL_EXIT:
-	if (returnInfo.type == TCL_RI_INT) {
-	    return returnInfo.i;
-	} else {
-	    return 0x80;
-	}
+        if (returnInfo.type == TCL_RI_INT) {
+            return returnInfo.i;
+        } else {
+            return 0x80;
+        }
     case TCL_BADCMD:
-	return 2;
+        return 2;
     case TCL_OOM:
-	return 3;
+        return 3;
     default:
-	return 0x80 | status;
+        return 0x80 | status;
     }
 }
 

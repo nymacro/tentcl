@@ -7,7 +7,7 @@
 
 #include <string.h>
 
-typedef struct TclValueRef{
+typedef struct TclValueRef {
     char *value;      /* Stringly typed */
     unsigned int ref; /* Reference count */
 } TclValueRef;

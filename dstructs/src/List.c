@@ -5,6 +5,7 @@
 #include "List.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 /*
  * List_compare_: default node/data compare. Returns 0 on equality, 1 if
