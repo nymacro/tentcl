@@ -41,7 +41,6 @@ make all
 ## LIMITATIONS
 * No non-numerical comparisons for conditionals (`expr` uses `mathexpr`, which does not
   support non-`int` types)
-* Inefficient (representation of program is stringly-typed like the original Tcl, and
-  everything is always re-processed)
-* No proper testing
-* Everything
+* Inefficient.
+* Not thoroughly tested.
+* Other things.

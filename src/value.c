@@ -49,8 +49,8 @@ void TclValue_delete(TclValue *value) {
     if (value->container)
     {
         TclValue_unref_(value);
-        free(value);
     }
+    free(value);
 }
 
 void TclValue_new_ref(TclValue **value, TclValue *existing)

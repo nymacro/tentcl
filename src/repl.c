@@ -38,23 +38,23 @@ static int keyHandler(LineRead *self) {
     if (self->lastChar == '\t') {
         /* auto complete function names */
         char autoStr[128];
-        
+
         /* get the string to auto complete */
         int i, autoLen = 0;
-        for (i = len - 1; i > 0; i--) {
-            if (isspace(self->buf[i])) {
+        for (i = len; i > 0; i--) {
+            if (isspace(self->buf[i-1])) {
                 break;
             }
         }
         autoLen = len - i;
-        if (autoLen <= 1 || autoLen >= 128) {
+        if (autoLen < 1 || autoLen >= 128) {
             return LR_KEYREMOVE;
         }
-                
+
         /* copy out string to auto complete */
         strncpy(autoStr, &self->buf[i], autoLen);
         autoStr[autoLen] = '\0';
-        
+
         /* search for a match */
         List *matches = List_malloc();
         FilterData fd = { matches, autoStr };

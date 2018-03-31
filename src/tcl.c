@@ -106,21 +106,21 @@ static char* Tcl_substring_(char *string, unsigned int start, unsigned int end) 
 }
 
 /* Tcl_string_compare
- * 
+ *
  */
 static int Tcl_split_compare(ListNode *node, void *data) {
     return strcmp(node->data, data);
 }
 
 /* Tcl_string_alloc
- * 
+ *
  */
 static void Tcl_split_alloc(ListNode *node, void *data) {
     node->data = data;
 }
 
 /* Tcl_string_dealloc
- * 
+ *
  */
 static void Tcl_split_dealloc(ListNode *node) {
     // TclValue_delete((TclValue*)node->data);
@@ -255,7 +255,7 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
             break;
         }
     }
-    
+
     List_free(list);
     return status;
 }
@@ -312,9 +312,9 @@ static char *Tcl_getKeyedValue_(Tcl *vm, char *str, char *key) {
             }
         }
     }
-    
+
     List_free(list);
-    
+
     return result;
 }
 

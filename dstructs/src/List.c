@@ -31,7 +31,7 @@ static void List_alloc_(ListNode *node, void *data) {
  * List_dealloc_: default deallocator, used to deallocate a node
  */
 static void List_dealloc_(ListNode *node) {
-    // blank
+    node->data = NULL;
 }
 
 /*
