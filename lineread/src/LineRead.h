@@ -28,6 +28,7 @@ struct LineRead {
 
     /* command history */
     List *history;
+    int lastHistory;
 
     /* internal string buffer */
     int lastChar; /* last character processed */

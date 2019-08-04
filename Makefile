@@ -1,13 +1,16 @@
-SAN_FLAGS+= # -fsanitize=address -fno-omit-frame-pointer # -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
-LIBS+= -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
-       -Llineread -llineread -lpcre2-8
-CFLAGS+= -Idstructs/src -Imathexpr/src -Ilineread/src \
-         -g -Wall \
-         -DWITH_LIBRARIES \
-         $(SAN_FLAGS)
-EXEFLAGS+= $(SAN_FLAGS)
-OBJECT= src/value.o \
-        src/tcl.o src/std.o src/tclsh.o src/repl.o src/ext.o src/regexp.o
+SAN_FLAGS+= #-fsanitize=address -fno-omit-frame-pointer # -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
+LIBS += -L/usr/local/lib \
+        -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
+        -Llineread -llineread -lpcre2-8
+CFLAGS += -Idstructs/src -Imathexpr/src -Ilineread/src \
+          -I/usr/local/include \
+          -g -Wall \
+          -DWITH_LIBRARIES \
+          $(SAN_FLAGS) \
+          #-DNO_LINEREAD \
+EXEFLAGS += $(SAN_FLAGS)
+OBJECT = src/value.o \
+         src/tcl.o src/std.o src/tclsh.o src/repl.o src/ext.o src/regexp.o
 
 .PHONY: all clean test
 

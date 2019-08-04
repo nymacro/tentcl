@@ -159,6 +159,13 @@ void List_push(List *list, void *data) {
 }
 
 /*
+ * List_unshift: push node on the front of list
+ */
+void List_unshift(List *list, void *data) {
+    List_insertBefore(list, List_first(list), data);
+}
+
+/*
  * List_pop: pop node off the back off list
  */
 void List_pop(List *list) {

@@ -79,7 +79,7 @@ void LineRead_free(LineRead *self) {
  * Add string to history
  */
 void LineRead_addHistory(LineRead *self, char *string) {
-    List_add(self->history, string);
+    List_unshift(self->history, string);
 }
 
 /* LineRead_readLine:
@@ -88,9 +88,43 @@ void LineRead_addHistory(LineRead *self, char *string) {
 char *LineRead_readLine(LineRead *self) {
     self->bufp = 0;
     self->buf[0] = '\0';
+    self->lastHistory = -1;
     do {
+        int len = strlen(self->buf);
+        int historyLength = List_size(self->history);
+
         /* get the character */
         self->lastChar = getchar();
+
+        /* check for special keys */
+        if (self->lastChar == '\033') {
+            getchar(); /* skip the [ */
+            self->lastChar = getchar();
+
+            switch (self->lastChar) {
+            case 'A': /* up arrow */
+                if (self->lastHistory < historyLength - 1)
+                    self->lastHistory++;
+                break;
+
+            case 'B': /* down arrow */
+                if (self->lastHistory > 0)
+                    self->lastHistory--;
+                break;
+
+            default:
+                continue;
+            }
+
+            if (historyLength != 0) {
+                char *item = (char*)List_index(self->history, self->lastHistory)->data;
+                strcpy(self->buf, item);
+
+                /* redisplay */
+                printf("\r%*s\r%s", len, "", self->buf);
+            }
+            continue;
+        }
         
         /* filter/substitute characters */
         if (self->lastChar == '\r')
@@ -102,7 +136,7 @@ char *LineRead_readLine(LineRead *self) {
         if (self->lastChar == EOF && self->bufp == 0) {
             return NULL;
         }
-        
+
         /* call key handler */
         if (self->keyHandler(self) != LR_KEYREMOVE) {
             /* default action with key (add to buffer) */
