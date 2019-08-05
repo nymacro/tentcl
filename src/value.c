@@ -11,16 +11,25 @@
 
 #include "common.h"
 
+static void TclValue_free_value_(TclValue *value) {
+    switch (TclValue_type(value)) {
+    case TCL_VALUE_STR:
+        free(value->container->value);
+        break;
+    default:
+        break;
+    }
+    value->container->value = NULL;
+}
+
 static void TclValue_unref_(TclValue *value) {
     if (value->container)
     {
         --value->container->ref;
         if (value->container->ref == 0) {
-            if (value->container->value) {
-                free(value->container->value);
-                free(value->container);
-                value->container = NULL;
-            }
+            TclValue_free_value_(value);
+            free(value->container);
+            value->container = NULL;
         }
     }
 }
@@ -71,13 +80,9 @@ void TclValue_set(TclValue *value, char *data) {
         value->container->value = NULL;
         value->container->ref = 1;
     }
-    if (value->container->value) {
-        free(value->container->value);
-    }
+    TclValue_free_value_(value);
     if (data) {
         value->container->value = strdup(data);
-    } else {
-        value->container->value = NULL;
     }
 }
 
@@ -89,8 +94,7 @@ void TclValue_set_raw(TclValue *value, char *data, size_t len) {
 }
 
 void TclValue_set_(TclValue *value, char *data) {
-    if (value->container->value)
-        free(value->container->value);
+    TclValue_free_value_(value);
     value->container->value = data;
 }
 
@@ -103,6 +107,8 @@ void TclValue_replace(TclValue *value, TclValue *value2) {
 void TclValue_append(TclValue *value, char *data) {
     if (data == NULL)
         return;
+
+    TclValue_coerce(value, TCL_VALUE_STR);
 
     if (value->container) {
         value->container->value = (char*)realloc(value->container->value,
@@ -119,11 +125,13 @@ void TclValue_prepend(TclValue *value, char *data) {
     if (data == NULL)
         return;
 
+    TclValue_coerce(value, TCL_VALUE_STR);
+
     char *newstr = (char*)malloc(strlen(value->container->value) + strlen(data) + 1);
     strcpy(newstr, data);
     strcpy(&newstr[strlen(data)], value->container->value);
 
-    TclValue_set_(value, data);
+    TclValue_set_(value, newstr);
 }
 
 /* TclValue TclValue_const(char *value) { */
@@ -131,19 +139,59 @@ void TclValue_prepend(TclValue *value, char *data) {
 /*     return v; */
 /* } */
 
+TclValueType TclValue_type(TclValue *v) {
+    if (TclValue_null(v))
+        return TCL_VALUE_NULL;
+    return TCL_VALUE_TAG_MASK & (unsigned int)v->container->value;
+}
+
+TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
+    int int_val;
+    char *str_val;
+    TclValueType old_type = TclValue_type(v);
+
+    /* str -> int */
+    if (old_type == TCL_VALUE_STR && new_type == TCL_VALUE_INT) {
+        int_val = (int)strtol(v->container->value, NULL, 10);
+        TclValue_free_value_(v);
+        v->container->value = (char *)((int_val << TCL_VALUE_TAG_BITS) | TCL_VALUE_INT);
+    }
+    if (old_type == TCL_VALUE_INT && new_type == TCL_VALUE_STR) {
+        str_val = (char*)malloc(sizeof(char) * 20);
+        snprintf(str_val, 20, "%i", TclValue_int(v));
+        v->container->value = str_val;
+    }
+    return v;
+}
+
 char *TclValue_str(TclValue *v) {
     static char empty[] = "NULL";
-    if (v->container)
+    static char int_buf[256]; /* not thread safe */
+
+    TclValue_coerce(v, TCL_VALUE_STR);
+
+    switch (TclValue_type(v)) {
+    case TCL_VALUE_INT:
+        snprintf(int_buf, sizeof(int_buf) - 1, "%i", TclValue_int(v));
+        return int_buf;
+    case TCL_VALUE_STR:
         return v->container->value;
-    else
+    default:
         return empty;
+    }
 }
 
 int TclValue_int(TclValue *v) {
-    if (v->container->value)
+    TclValue_coerce(v, TCL_VALUE_INT);
+
+    switch (TclValue_type(v)) {
+    case TCL_VALUE_INT:
+        return (int)((unsigned int)v->container->value >> TCL_VALUE_TAG_BITS);
+    case TCL_VALUE_STR:
         return atoi(v->container->value);
-    else
+    default:
         return 0;
+    }
 }
 
 int TclValue_null(TclValue *v) {

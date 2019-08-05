@@ -29,6 +29,19 @@ void TclValue_prepend(TclValue *, char*); /* Prepend string to start of value */
 
 /* TclValue TclValue_const(char *value); */
 
+#define TCL_VALUE_TAG_MASK 0x07
+#define TCL_VALUE_TAG_BITS 3
+#define TCL_VALUE_TAG_REMOVE(value) ((int)((value) >> TCL_VALUE_TAG_BITS))
+
+typedef enum {
+    TCL_VALUE_STR = 0x00,
+    TCL_VALUE_INT = 0x01,
+    TCL_VALUE_NULL = 255
+} TclValueType;
+
+TclValueType TclValue_type(TclValue *v);
+TclValue *TclValue_coerce(TclValue *v, TclValueType new_type);
+
 char *TclValue_str(TclValue *v);
 int TclValue_int(TclValue *v);
 int TclValue_null(TclValue *v);

@@ -8,9 +8,6 @@ nor is it well-written -- it is more of a toy than something useful. It is
 extremely and inefficient in its execution, uses only lexical variables, and
 does not support much of the syntax of the Tcl language.
 
-It is online for historical purposes only; although, in my opinion, the code
-is rather neatly written. But I am biased.
-
 For license details, see LICENSE
 
 Aaron Marks

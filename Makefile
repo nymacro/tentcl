@@ -4,7 +4,7 @@ LIBS += -L/usr/local/lib \
         -Llineread -llineread -lpcre2-8
 CFLAGS += -Idstructs/src -Imathexpr/src -Ilineread/src \
           -I/usr/local/include \
-          -g -Wall \
+          -O0 -g -Wall \
           -DWITH_LIBRARIES \
           $(SAN_FLAGS) \
           #-DNO_LINEREAD \
