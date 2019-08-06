@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <setjmp.h>
 #include "ext.h"
 #include "std.h"
 #include "repl.h"
@@ -285,6 +286,43 @@ TclReturn TclStd_bindings(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+/* this doesn't work due to setjmp returning before you can longjmp */
+TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    TclReturn status;
+    TclValue *obj;
+
+    if (argc != 3) {
+        return TCL_EXCEPTION;
+    }
+
+    jmp_buf *env = malloc(sizeof(jmp_buf));
+    TclValue_new_object(&obj, "<label>", env, free);
+    setjmp(*env);
+
+    Tcl_addVariable_(vm, TclValue_str(argv[1]), obj);
+
+    status = TclStd_eval(vm, argc-1, argv+1, ret);
+
+    /* invalidate the label */
+    TclValue_set_null(obj);
+
+    return status;
+}
+
+TclReturn TclStd_goto(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 2) {
+        return TCL_EXCEPTION;
+    }
+
+    /* lookup name and see if it is a label */
+    TclValue *v = Tcl_getVariableUp(vm, TclValue_str(argv[1]), 1);
+    if (v && TclValue_type_object_cmp(v, "<label>") == 0) {
+        TclValueObject *obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value);
+        longjmp(*(jmp_buf*)obj->ptr, 1);
+    }
+    return TCL_EXCEPTION;
+}
+
 typedef void (*TclLibraryRegister)(Tcl *vm);
 
 /*tcl: use library
@@ -343,6 +381,8 @@ void TclExt_register(Tcl *vm) {
 
     Tcl_register(vm, "repl", TclStd_repl);
     Tcl_register(vm, "bindings", TclStd_bindings);
+    Tcl_register(vm, "label", TclStd_label);
+    Tcl_register(vm, "goto", TclStd_goto);
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;

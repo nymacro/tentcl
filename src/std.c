@@ -147,7 +147,8 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     } else if (argc < 3) {
         TclValue *value = Tcl_getVariable(vm, TclValue_str(argv[1]));
         if (value) {
-            TclValue_set(ret, TclValue_str(value));
+            /* TclValue_set(ret, TclValue_str(value)); */
+            TclValue_replace(ret, value);
         } else {
             printf("can't read \"%s\": no such variable\n", TclValue_str(argv[1]));
             return TCL_EXCEPTION;
@@ -157,7 +158,9 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         if (value) {
             TclValue_set(value, TclValue_str(argv[2]));
         } else {
-            TclValue_new(&value, TclValue_str(argv[2]));
+            /* TclValue_new(&value, TclValue_str(argv[2])); */
+            TclValue_new(&value, NULL);
+            TclValue_replace(value, argv[2]);
             Tcl_addVariable_(vm, TclValue_str(argv[1]), value);
         }
 

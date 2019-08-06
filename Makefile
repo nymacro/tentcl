@@ -6,9 +6,9 @@ CFLAGS += -Idstructs/src -Imathexpr/src -Ilineread/src \
           -I/usr/local/include \
           -O0 -g -Wall \
           -DWITH_LIBRARIES \
-          $(SAN_FLAGS) \
-          #-DNO_LINEREAD \
+          $(SAN_FLAGS)
 EXEFLAGS += $(SAN_FLAGS)
+
 OBJECT = src/value.o \
          src/tcl.o src/std.o src/tclsh.o src/repl.o src/ext.o src/regexp.o
 

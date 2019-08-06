@@ -27,3 +27,16 @@ test "upvar" {
     my_set i 200
     assert "$i == 200"
 }
+
+set loop_count 3
+test "label" {
+    upvar loop_count loop_count
+
+    label l {
+        set loop_count [incr $loop_count -1]
+        puts "looping $loop_count"
+        if {$loop_count > 0} {
+            goto l
+        }
+    }
+}
