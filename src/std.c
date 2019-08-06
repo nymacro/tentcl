@@ -44,8 +44,14 @@ TclReturn TclStd_userFuncall(Tcl *vm, int argc, TclValue *argv[], TclValue *ret)
     TclReturn status;
     TclUserFunction *f = Hash_get(functions, TclValue_str(argv[0]))->data;
     int i;
+    int var_args = 0;
 
-    if (List_size(f->args) != argc - 1) {
+    /* check of variable args */
+    ListNode *last_arg = List_last(f->args);
+    if (last_arg && strcmp(last_arg->data, "args") == 0)
+      var_args = 1;
+
+    if (!var_args && List_size(f->args) != argc - 1) {
         printf("Invalid argument list (takes %i, given %i)\n", List_size(f->args), argc - 1);
         for (i = 0; i < List_size(f->args); i++) {
             printf("%i: '%s' %i\n", i, (char*)List_index(f->args, i)->data, (int)strlen((char*)List_index(f->args, i)->data));
@@ -55,11 +61,24 @@ TclReturn TclStd_userFuncall(Tcl *vm, int argc, TclValue *argv[], TclValue *ret)
 
     Tcl_pushNamespace(vm);
 
-    for (i = 0; i < List_size(f->args); i++) {
+    for (i = 0; i < List_size(f->args) - var_args; i++) {
         HashPair *p = Hash_get(vm->variables, List_index(f->args, i)->data);
         TclValue_new((TclValue**)&p->data, TclValue_str(argv[i + 1]));
         //printf("%i '%s' '%s'\n", i, List_index(&f->args, i)->data, TclValue_str(argv[i + 1]));
     }
+
+    /* combine rest of arguments */
+    if (var_args && i < List_size(f->args)) {
+        HashPair *p = Hash_get(vm->variables, List_index(f->args, i)->data);
+        TclValue **v = (TclValue**)&p->data;
+        TclValue_new(v, NULL);
+
+        for (; i < argc - 1; i++) {
+            TclValue_append(*v, TclValue_str(argv[i + 1]));
+            TclValue_append(*v, " ");
+        }
+    }
+
     status = Tcl_eval(vm, TclValue_str(f->code), ret);
 
     Tcl_popNamespace(vm);

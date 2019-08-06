@@ -48,6 +48,7 @@ proc assert {condition} {
     if $condition {
         return 1
     } else {
+        # repl
         puts "    failed condition $condition"
         fail
     }

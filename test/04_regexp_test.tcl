@@ -2,9 +2,6 @@ test "re dot" { assert {[regexp {2..} {1234}] == 234} }
 test "re quantifier+" {
     assert {[regexp {1+} {211134}] == 111}
 }
-test "re quantifier+" {
-    assert {[regexp {1+} {211134}] == 111}
-}
 test "re quantifier*" {
     assert {[regexp {1*} {11234}] == 11}
 }

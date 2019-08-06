@@ -199,3 +199,7 @@ int TclValue_null(TclValue *v) {
         return 1;
     return 0;
 }
+
+int TclValue_str_cmp(TclValue *v, char *str) {
+  return strcmp(TclValue_str(v), str);
+}

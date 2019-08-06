@@ -1,4 +1,4 @@
-SAN_FLAGS+= #-fsanitize=address -fno-omit-frame-pointer # -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
+SAN_FLAGS += #-fsanitize=address -fno-omit-frame-pointer # -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
 LIBS += -L/usr/local/lib \
         -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
         -Llineread -llineread -lpcre2-8

@@ -46,4 +46,6 @@ char *TclValue_str(TclValue *v);
 int TclValue_int(TclValue *v);
 int TclValue_null(TclValue *v);
 
+int TclValue_str_cmp(TclValue *v, char *str);
+
 #endif

@@ -82,13 +82,15 @@ void usage(void) {
            "\ttclsh [options] [script name]\n"
            "\n"
            "Options:\n"
-           "\t-I<source>     --include=<source>     include source before executing script or shell\n"
-           "\t-h             --help                 print this message\n"
+           "\t-e<source-code>                          execute source before running script or shell\n"
+           "\t-I<source-file> 	--include=<source>     include source file before executing script or shell\n"
+           "\t-h             	--help                 print this message\n"
            "                                        \n");
 }
 
 int main(int argc, char *argv[]) {
     TclReturn status = TCL_OK;
+    TclValue *ret;
 
     /* Initialize tentcl */
     Tcl_new(&tcl);
@@ -97,16 +99,19 @@ int main(int argc, char *argv[]) {
     TclExt_register(&tcl);
     TclRegexp_register(&tcl);
 
+    TclValue_new(&ret, NULL);
+
     /* Parse command line params */
     int c = 0;
     int option_index = 0;
     while (1) {
         static struct option long_options[] = {
             {"include", required_argument, 0, 0},
+            {"e", required_argument, 0, 0},
             {"help", no_argument, 0, 0},
             {0, 0, 0, 0}
         };
-        c = getopt_long(argc, argv, "I:h", long_options, &option_index);
+        c = getopt_long(argc, argv, "I:e:h", long_options, &option_index);
         if (c == -1) {
             break;
         }
@@ -123,6 +128,9 @@ int main(int argc, char *argv[]) {
                 usage();
                 exit(0);
             }
+            break;
+        case 'e':
+            status = Tcl_eval(&tcl, optarg, ret);
             break;
         case 'I':
             status = evalFile(optarg);
