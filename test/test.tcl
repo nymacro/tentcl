@@ -54,6 +54,11 @@ proc assert {condition} {
     }
 }
 
+proc assert_error {error block} {
+    set err [catch $block]
+    assert "$err == $error"
+}
+
 proc fail {} {
     exit 2
 }

@@ -286,9 +286,12 @@ TclReturn TclStd_bindings(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+#define GOTO_IN 1
+#define GOTO_OUT 2
+
 /* this doesn't work due to setjmp returning before you can longjmp */
 TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    TclReturn status;
+    TclReturn status = TCL_OK;
     TclValue *obj;
 
     if (argc != 3) {
@@ -297,11 +300,12 @@ TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
     jmp_buf *env = malloc(sizeof(jmp_buf));
     TclValue_new_object(&obj, "<label>", env, free);
-    setjmp(*env);
-
     Tcl_addVariable_(vm, TclValue_str(argv[1]), obj);
 
-    status = TclStd_eval(vm, argc-1, argv+1, ret);
+    int j = setjmp(*env);
+    if (j != GOTO_OUT) {
+      status = TclStd_eval(vm, argc-1, argv+1, ret);
+    }
 
     /* invalidate the label */
     TclValue_set_null(obj);
@@ -318,9 +322,27 @@ TclReturn TclStd_goto(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     TclValue *v = Tcl_getVariableUp(vm, TclValue_str(argv[1]), 1);
     if (v && TclValue_type_object_cmp(v, "<label>") == 0) {
         TclValueObject *obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value);
-        longjmp(*(jmp_buf*)obj->ptr, 1);
+        longjmp(*(jmp_buf*)obj->ptr, GOTO_IN);
     }
     return TCL_EXCEPTION;
+}
+
+TclReturn TclStd_leave(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 2) {
+        return TCL_EXCEPTION;
+    }
+
+    /* lookup name and see if it is a label */
+    TclValue *v = Tcl_getVariableUp(vm, TclValue_str(argv[1]), 1);
+    if (v && TclValue_type_object_cmp(v, "<label>") == 0) {
+        TclValueObject *obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value);
+        longjmp(*(jmp_buf*)obj->ptr, GOTO_OUT);
+    }
+    return TCL_EXCEPTION;
+}
+
+TclReturn TclStd_noop(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    return TCL_OK;
 }
 
 typedef void (*TclLibraryRegister)(Tcl *vm);
@@ -383,6 +405,8 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "bindings", TclStd_bindings);
     Tcl_register(vm, "label", TclStd_label);
     Tcl_register(vm, "goto", TclStd_goto);
+    Tcl_register(vm, "leave", TclStd_leave);
+    Tcl_register(vm, "noop", TclStd_noop);
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;

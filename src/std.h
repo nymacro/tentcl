@@ -18,5 +18,6 @@ extern Hash *functions;
 void TclStd_register(Tcl*);
 
 TclReturn TclStd_userFuncall(Tcl*, int, TclValue*[], TclValue*);
+TclReturn TclStd_eval(Tcl *vm, int argc, TclValue *argv[], TclValue *ret);
 
 #endif

@@ -158,7 +158,6 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         if (value) {
             TclValue_set(value, TclValue_str(argv[2]));
         } else {
-            /* TclValue_new(&value, TclValue_str(argv[2])); */
             TclValue_new(&value, NULL);
             TclValue_replace(value, argv[2]);
             Tcl_addVariable_(vm, TclValue_str(argv[1]), value);
@@ -211,7 +210,6 @@ TclReturn TclStd_exit(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 }
 
 /*tcl: proc name varlist body
- * TODO: variable length arguments
  *
  * Defines a procedure called name as a Tcl command. When this command is
  * executed each argument specified will be bound to each element of the list

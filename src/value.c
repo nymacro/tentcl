@@ -73,7 +73,7 @@ TclValueObject *TclValueObject_new(char *type_str, void *obj, void (*free)(void 
 
 void TclValue_new_object(TclValue **value, char *type_str, void *obj, void (*free)(void *)) {
     TclValue_new_(value);
-    (*value)->container->value = TclValueObject_new(type_str, obj, free);
+    (*value)->container->value = (char*)TclValueObject_new(type_str, obj, free);
 }
 
 void TclValue_delete(TclValue *value) {
@@ -192,7 +192,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
     if (old_type == TCL_VALUE_STR && new_type == TCL_VALUE_INT) {
         int_val = (int)strtol(v->container->value, NULL, 10);
         TclValue_free_value_(v);
-        v->container->value = (char *)((int_val << TCL_VALUE_TAG_BITS) | TCL_VALUE_INT);
+        v->container->value = (char *)(((long)int_val << TCL_VALUE_TAG_BITS) | TCL_VALUE_INT);
     }
     /* int -> str */
     if (old_type == TCL_VALUE_INT && new_type == TCL_VALUE_STR) {

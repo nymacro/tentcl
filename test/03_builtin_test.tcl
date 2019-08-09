@@ -28,15 +28,43 @@ test "upvar" {
     assert "$i == 200"
 }
 
-set loop_count 3
-test "label" {
-    upvar loop_count loop_count
+test "label_goto" {
+    set count 3
 
     label l {
-        set loop_count [incr $loop_count -1]
-        puts "looping $loop_count"
-        if {$loop_count > 0} {
+        set count [incr $count -1]
+        puts "looping $count"
+        if {$count > 0} {
             goto l
         }
     }
+    assert "$count == 0"
+}
+
+test "label_leave" {
+    set fail 0
+    label l {
+        leave l
+        set fail 1
+    }
+    assert "$fail == 0"
+}
+
+test "label_nested" {
+    set done 0
+    label l1 {
+        if {$done > 0} {
+            leave l1
+        }
+        label l2 {
+            set done 1
+            goto l1
+        }
+    }
+    assert "$done == 1"
+}
+
+test "label_scope" {
+    label l1 { noop }
+    assert_error 4 { goto l1 }
 }
