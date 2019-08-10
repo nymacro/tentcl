@@ -78,6 +78,7 @@ void Tcl_pushNamespace(Tcl *self);
 void Tcl_popNamespace(Tcl *self);
 TclValue *Tcl_getVariable(Tcl *self, char *name);
 TclValue *Tcl_getVariableUp(Tcl *self, char *name, int level);
+TclValue *Tcl_getFunction(Tcl *self, char *name);
 int Tcl_isComplete(Tcl *self, char *expr);
 
 int Tcl_statusToCode(TclReturn);

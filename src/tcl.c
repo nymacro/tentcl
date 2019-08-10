@@ -265,11 +265,13 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
  * @param ret must be freed if set
  */
 TclReturn Tcl_funcall(Tcl *vm, char *function, int argc, TclValue *argv[], TclValue *ret) {
-    HashPair *p = Hash_get(vm->functions, function);
-    if (p->data == NULL) {
+    TclValue *fun = Tcl_getFunction(vm, function);
+    if (!fun) {
+        return TCL_BADCMD;
+    } else if (TclValue_type(fun) != TCL_VALUE_FUN) {
         return TCL_BADCMD;
     } else {
-        return ((TclFunction)p->data)(vm, argc, argv, ret);
+        return ((TclFunction)TclValue_fun(fun))(vm, argc, argv, ret);
     }
 }
 
@@ -492,8 +494,9 @@ void Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
  * Register new Tcl command in the interpreter.
  */
 void Tcl_register(Tcl *vm, char *name, TclFunction function) {
-    HashPair *p = Hash_get(vm->functions, name);
-    p->data = function;
+    TclValue *val = NULL;
+    TclValue_new_function(&val, (TclFunction_)function);
+    Tcl_addVariable_(vm, name, val);
 }
 
 /* Tcl_addVariable
@@ -539,6 +542,10 @@ TclValue *Tcl_getVariableUp(Tcl *self, char *name, int level) {
 
     HashPair *p = Hash_get(namespace, name);
     return p->data;
+}
+
+TclValue *Tcl_getFunction(Tcl *self, char *name) {
+    return Tcl_getVariableUp(self, name, 0);
 }
 
 /* Tcl_pushNamespace

@@ -1,6 +1,6 @@
 OBJS=src/BTree.o src/Hash.o src/List.o src/SkipList.o src/Vector.o src/EString.o
 LIBFILE=libdstructs.a
-CFLAGS=-g
+CFLAGS=$(EXTRA_CFLAGS)
 
 .PHONY: all test clean
 

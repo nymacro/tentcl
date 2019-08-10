@@ -64,7 +64,6 @@ TclReturn TclStd_userFuncall(Tcl *vm, int argc, TclValue *argv[], TclValue *ret)
     for (i = 0; i < List_size(f->args) - var_args; i++) {
         HashPair *p = Hash_get(vm->variables, List_index(f->args, i)->data);
         TclValue_new((TclValue**)&p->data, TclValue_str(argv[i + 1]));
-        //printf("%i '%s' '%s'\n", i, List_index(&f->args, i)->data, TclValue_str(argv[i + 1]));
     }
 
     /* combine rest of arguments */

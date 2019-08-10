@@ -76,6 +76,11 @@ void TclValue_new_object(TclValue **value, char *type_str, void *obj, void (*fre
     (*value)->container->value = (char*)TclValueObject_new(type_str, obj, free);
 }
 
+void TclValue_new_function(TclValue **value, TclFunction_ function) {
+    TclValue_new_(value);
+    (*value)->container->value = (char*)TCL_VALUE_TAG(function, TCL_VALUE_FUN);
+}
+
 void TclValue_delete(TclValue *value) {
     if (!value)
         return;
@@ -177,10 +182,11 @@ void TclValue_prepend(TclValue *value, char *data) {
 /*     return v; */
 /* } */
 
+#define TCL_VALUE_GET_TAG(value) ((unsigned long)(value) & TCL_VALUE_TAG_MASK)
 TclValueType TclValue_type(TclValue *v) {
     if (TclValue_null(v))
         return TCL_VALUE_NULL;
-    return TCL_VALUE_TAG_MASK & (unsigned int)v->container->value;
+    return TCL_VALUE_GET_TAG(v->container->value);
 }
 
 TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
@@ -192,7 +198,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
     if (old_type == TCL_VALUE_STR && new_type == TCL_VALUE_INT) {
         int_val = (int)strtol(v->container->value, NULL, 10);
         TclValue_free_value_(v);
-        v->container->value = (char *)(((long)int_val << TCL_VALUE_TAG_BITS) | TCL_VALUE_INT);
+        v->container->value = (char *)((((unsigned long)int_val) << TCL_VALUE_TAG_BITS) | TCL_VALUE_INT);
     }
     /* int -> str */
     if (old_type == TCL_VALUE_INT && new_type == TCL_VALUE_STR) {
@@ -227,11 +233,24 @@ int TclValue_int(TclValue *v) {
 
     switch (TclValue_type(v)) {
     case TCL_VALUE_INT:
-        return (int)((long)v->container->value >> TCL_VALUE_TAG_BITS);
+        return (int)((unsigned long)v->container->value >> TCL_VALUE_TAG_BITS);
     case TCL_VALUE_STR:
         return atoi(v->container->value);
     default:
         return 0;
+    }
+}
+
+static int oops(void *vm, int argc, TclValue *argv[], TclValue *ret) {
+    return 0;
+}
+
+TclFunction_ TclValue_fun(TclValue *v) {
+    switch (TclValue_type(v)) {
+    case TCL_VALUE_FUN:
+        return (TclFunction_)(TCL_VALUE_TAG_REMOVE(v->container->value));
+    default:
+        return oops;
     }
 }
 
@@ -251,5 +270,22 @@ int TclValue_type_object_cmp(TclValue *v, char *type_str) {
         return strcmp(obj->type_str, type_str);
     } else {
         return -1;
+    }
+}
+
+char *TclValue_type_str(TclValue *type) {
+    switch (TclValue_type(type)) {
+    case TCL_VALUE_STR:
+        return "STRING";
+    case TCL_VALUE_INT:
+        return "INT";
+    case TCL_VALUE_OBJ:
+        return "OBJECT";
+    case TCL_VALUE_FUN:
+        return "FUNCTION";
+    case TCL_VALUE_NULL:
+        return "NULL";
+    default:
+        return "UNKNOWN";
     }
 }

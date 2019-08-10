@@ -42,7 +42,7 @@ static int keyHandler(LineRead *self) {
         /* get the string to auto complete */
         int i, autoLen = 0;
         for (i = len; i > 0; i--) {
-            if (isspace(self->buf[i-1])) {
+            if (isspace(self->buf[i-1]) || self->buf[i-1] == '$') {
                 break;
             }
         }
@@ -58,29 +58,29 @@ static int keyHandler(LineRead *self) {
         /* search for a match */
         List *matches = List_malloc();
         FilterData fd = { matches, autoStr };
-        Hash_map(vm->functions, Hash_BTree_filter_, &fd);
+        Hash_map(vm->variables, Hash_BTree_filter_, &fd);
 
-        if (List_size(matches) == 1) {
+        if (List_size(matches) == 0) {
+            /* don't do anything */
+        } else if (List_size(matches) == 1) {
             /* copy string to buffer and put characters to screen */
             char *name = List_first(matches)->data;
             int completeLen = strlen(name) - autoLen;
             for (i = strlen(name) - completeLen; i < strlen(name); i++) {
                 self->buf[len - autoLen + i] = name[i];
-                fputc(name[i], stdout);
             }
             /* move bufp on and add space/null terminate string */
             self->bufp += completeLen;
             self->buf[self->bufp++] = ' ';
-            fputc(' ', stdout);
             self->buf[self->bufp] = '\0';
+            printf("\r\f> %s", self->buf);
         } else {
             /* print matches */
             printf("\r\f");
             for (i = 0; i < List_size(matches); i++) {
                 printf("%s ", (char*)List_index(matches, i)->data);
             }
-            printf("\r\f");
-            printf("> %s", autoStr);
+            printf("\r\f> %s", self->buf);
         }
         List_free(matches);
 

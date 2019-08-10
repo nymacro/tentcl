@@ -270,19 +270,14 @@ TclReturn TclStd_repl(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
 static void valuePrint(BTreeNode *node, void *_unused) {
     HashPair *pair = (HashPair*)node->data;
-    printf("  %s\n", pair->name);
+    printf("%s (%s)\n", pair->name, TclValue_type_str((TclValue*)pair->data));
 }
 
 /*tcl: bindings
  * Return an array of current bound variables
  */
 TclReturn TclStd_bindings(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    printf("VARIABLES\n");
     Hash_map(vm->variables, valuePrint, NULL);
-
-    printf("FUNCTIONS\n");
-    Hash_map(vm->functions, valuePrint, NULL);
-
     return TCL_OK;
 }
 

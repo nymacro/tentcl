@@ -1,13 +1,15 @@
-SAN_FLAGS += #-fsanitize=address -fno-omit-frame-pointer # -fno-optimize-sibling-calls -fsanitize-memory-track-origins=2
+SAN_FLAGS += #-fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls #-fsanitize-memory-track-origins=2
+
+EXTRA_CFLAGS=-O0 -g -Wall $(SAN_FLAGS)
+EXTRA_EXEFLAGS=$(SAN_FLAGS)
+
 LIBS += -L/usr/local/lib \
         -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
         -Llineread -llineread -lpcre2-8
 CFLAGS += -Idstructs/src -Imathexpr/src -Ilineread/src \
           -I/usr/local/include \
-          -O0 -g -Wall \
-          -DWITH_LIBRARIES \
-          $(SAN_FLAGS)
-EXEFLAGS += $(SAN_FLAGS)
+          $(EXTRA_CFLAGS) \
+          -DWITH_LIBRARIES
 
 OBJECT = src/value.o \
          src/tcl.o src/std.o src/tclsh.o src/repl.o src/ext.o src/regexp.o
@@ -22,35 +24,35 @@ test: tclsh
 dstructs: dstructs/libdstructs.a
 
 dstructs/libdstructs.a:
-	make -C dstructs
+	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" -C dstructs
 
 dstructs_clean:
-	-make -C dstructs clean
+	-$(MAKE) -C dstructs clean
 
 mathexpr: mathexpr/libmathexpr.a
 
 mathexpr/libmathexpr.a:
-	make -C mathexpr
+	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" -C mathexpr
 
 mathexpr_clean:
-	-make -C mathexpr clean
+	-$(MAKE) -C mathexpr clean
 
 lineread: lineread/liblineread.a
 
 lineread/liblineread.a:
-	make -C lineread
+	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" -C lineread
 
 lineread_clean:
-	-make -C lineread clean
+	-$(MAKE) -C lineread clean
 
 bindings_build:
-	make -C bindings
+	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" -C bindings
 
 bindings_clean:
-	-make -C bindings clean
+	-$(MAKE) -C bindings clean
 
 tclsh: $(OBJECT)
-	$(CC) $(EXEFLAGS) -o tclsh $(OBJECT) $(LIBS)
+	$(CC) $(EXTRA_EXEFLAGS) -o tclsh $(OBJECT) $(LIBS)
 
 .c.o:
 	$(CC) -o $@ -c $< $(CFLAGS)
@@ -70,4 +72,3 @@ clean: dstructs_clean mathexpr_clean lineread_clean bindings_clean
 	-rm $(OBJECT)
 	-rm doc/reference.html
 	-rm tclsh
-
