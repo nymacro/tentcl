@@ -375,10 +375,11 @@ void Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                 TclValue_new(&eval, NULL);
                 status = Tcl_eval(vm, str, eval);
                 if (status == TCL_OK && eval) {
-                    /* TclValue_append(result, TclValue_str(eval)); */
-                    TclValue_replace(result, eval);
+                    TclValue_append(result, TclValue_str(eval));
+                    /* TclValue_replace(result, eval); */
                 } else {
                     /* FIXME */
+                    abort();
                 }
                 TclValue_delete(eval);
                 free(str);

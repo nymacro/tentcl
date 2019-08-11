@@ -150,23 +150,26 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    /* Script mode */
     if (optind < argc) {
+        /* Script mode */
         while (optind < argc) {
-            status = evalFile(argv[optind++]);
-            if (status != TCL_OK) {
-                return Tcl_statusToCode(status);
+            if (strcmp(argv[optind], "-") == 0) {
+                status = TclRepl_repl(&tcl, stdin);
+            } else {
+                status = evalFile(argv[optind]);
             }
+            optind++;
+            if (status != TCL_OK)
+                break;
         }
-        return Tcl_statusToCode(status);
+    } else {
+        /* Interactive mode */
+        about();
+        status = TclRepl_repl(&tcl, stdin);
+        printf("\n");
     }
 
-    /* Interactive mode */
-    about();
-
-    status = TclRepl_repl(&tcl, stdin);
-
-    printf("\n");
-
+    if (status != TCL_OK && status != TCL_EXIT)
+        fprintf(stderr, "Error: %s", Tcl_returnString(status));
     return Tcl_statusToCode(status);
 }

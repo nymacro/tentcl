@@ -222,7 +222,12 @@ char *TclValue_str(TclValue *v) {
     case TCL_VALUE_STR:
         return v->container->value;
     case TCL_VALUE_OBJ:
-        return ((TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value))->type_str;
+        snprintf(int_buf, sizeof(int_buf) - 1, "<%s>",
+                 ((TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value))->type_str);
+        return int_buf;
+    case TCL_VALUE_FUN:
+        snprintf(int_buf, sizeof(int_buf) - 1, "<FUNCTION %p>", TclValue_fun(v));
+        return int_buf;
     default:
         return empty;
     }
@@ -255,7 +260,7 @@ TclFunction_ TclValue_fun(TclValue *v) {
 }
 
 int TclValue_null(TclValue *v) {
-    if (v->container == NULL || (v->container && v->container->value == NULL))
+    if (v == NULL || v->container == NULL || (v->container && v->container->value == NULL))
         return 1;
     return 0;
 }

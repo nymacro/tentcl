@@ -96,8 +96,31 @@ TclValue *TclStd_expression(Tcl *vm, TclValue *expression) {
     return retval;
 }
 
-
 /**********************************************/
+
+TclReturn TclStd_apply(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 3) {
+        return TCL_BADCMD;
+    }
+
+    char *function = TclValue_str(argv[1]);
+    List *args = List_malloc();
+    Tcl_split(vm, TclValue_str(argv[2]), " \t\n", args); /* dirty */
+    int nargs = List_size(args) + 1;
+
+    TclValue **vargs = (TclValue**)malloc(sizeof(TclValue*) * nargs);
+    TclValue_new_ref(&vargs[0], argv[1]);
+    for (int i = 0; i < nargs-1; i++) {
+        vargs[i+1] = Tcl_expand(vm, List_index(args, i)->data);
+    }
+
+    TclReturn status = Tcl_funcall(vm, function, nargs, vargs, ret);
+
+    TclValue_delete(vargs[0]);
+    free(vargs);
+    List_free(args);
+    return status;
+}
 
 /*tcl: puts ?-nonewline? ?fileid? ?output?
  * Outputs output to the standard output stream. If -nonewline is specified
@@ -273,14 +296,37 @@ TclReturn TclStd_if(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (TclValue_int(result)) {
         status = Tcl_eval(vm, TclValue_str(argv[2]), ret);
     } else {
-        if (argc == 5 && strcmp(TclValue_str(argv[3]), "else") == 0) {
-            status = Tcl_eval(vm, TclValue_str(argv[4]), ret);
-        } else if (argc == 4) {
+        /* derp */
+        if (argc == 4) {
             status = Tcl_eval(vm, TclValue_str(argv[3]), ret);
-        } else {
-            // empty false case, do nothing
+            goto done;
         }
+
+        for (unsigned int i = 3; i < argc; ++i) {
+            if (strcmp(TclValue_str(argv[i]), "elseif") == 0) {
+                if (i + 2 >= argc) {
+                    status = TCL_EXCEPTION;
+                    goto done;
+                }
+                TclValue_delete(result);
+                result = TclStd_expression(vm, argv[i+1]);
+                if (TclValue_int(result)) {
+                    status = Tcl_eval(vm, TclValue_str(argv[i+2]), ret);
+                    goto done;
+                }
+                i += 2;
+            } else if (strcmp(TclValue_str(argv[i]), "else") == 0) {
+                if (i >= argc) {
+                    status = TCL_EXCEPTION;
+                    goto done;
+                }
+                status = Tcl_eval(vm, TclValue_str(argv[i+1]), ret);
+                goto done;
+            }
+        }
+        TclValue_set_null(ret);
     }
+done:
     TclValue_delete(result);
     return status;
 }
@@ -814,6 +860,7 @@ void TclStd_cleanup(void) {
 }
 
 void TclStd_register(Tcl *vm) {
+    Tcl_register(vm, "apply", TclStd_apply);
     Tcl_register(vm, "puts", TclStd_puts);
     Tcl_register(vm, "set", TclStd_set);
     Tcl_register(vm, "unset", TclStd_unset);

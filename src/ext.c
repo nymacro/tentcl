@@ -294,7 +294,7 @@ TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
 
     jmp_buf *env = malloc(sizeof(jmp_buf));
-    TclValue_new_object(&obj, "<label>", env, free);
+    TclValue_new_object(&obj, "label", env, free);
     Tcl_addVariable_(vm, TclValue_str(argv[1]), obj);
 
     int j = setjmp(*env);
@@ -315,7 +315,7 @@ TclReturn TclStd_goto(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
     /* lookup name and see if it is a label */
     TclValue *v = Tcl_getVariableUp(vm, TclValue_str(argv[1]), 1);
-    if (v && TclValue_type_object_cmp(v, "<label>") == 0) {
+    if (v && TclValue_type_object_cmp(v, "label") == 0) {
         TclValueObject *obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value);
         longjmp(*(jmp_buf*)obj->ptr, GOTO_IN);
     }
@@ -329,7 +329,7 @@ TclReturn TclStd_leave(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
     /* lookup name and see if it is a label */
     TclValue *v = Tcl_getVariableUp(vm, TclValue_str(argv[1]), 1);
-    if (v && TclValue_type_object_cmp(v, "<label>") == 0) {
+    if (v && TclValue_type_object_cmp(v, "label") == 0) {
         TclValueObject *obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value);
         longjmp(*(jmp_buf*)obj->ptr, GOTO_OUT);
     }
