@@ -223,6 +223,31 @@ void TclValue_list_push_str(TclValue *value, char *str) {
     TclValue_list_push(value, v);
 }
 
+int TclValue_list_size(TclValue *value) {
+    if (TclValue_type(value) != TCL_VALUE_LIST)
+        return -1; /* oops? */
+
+    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    return List_size(list);
+}
+
+TclValue *TclValue_list_elt(TclValue *value, int idx) {
+    if (TclValue_type(value) != TCL_VALUE_LIST)
+        return NULL; /* oops? */
+
+    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    unsigned int size = List_size(list);
+    if (idx < 0) {
+        idx = size - idx;
+    }
+
+    if (idx >= size) {
+        return NULL; /* oops? */
+    }
+
+    return List_index(list, idx)->data;
+}
+
 TclValue *TclValue_list_pop(TclValue *value) {
     TclValue_coerce(value, TCL_VALUE_LIST);
 
@@ -265,8 +290,9 @@ int TclValue_list_join_(TclValue *value, char *buf, unsigned int buf_len) {
     for (unsigned int i = 0; i < size; i++) {
         if (buf_len == 0)
             break;
-        unsigned int t = snprintf(buf, buf_len, "%s ",
-                                  TclValue_str(List_index(list, i)->data));
+        unsigned int t = snprintf(buf, buf_len, "%s%*s",
+                                  TclValue_str(List_index(list, i)->data),
+                                  i != size-1, "");
         used += t;
         buf_len -= t;
         buf += t;

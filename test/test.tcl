@@ -48,7 +48,7 @@ proc assert {condition} {
     if $condition {
         noop
     } else {
-        repl
+        # repl
         puts "    failed condition $condition"
         fail
     }

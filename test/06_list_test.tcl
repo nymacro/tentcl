@@ -11,12 +11,22 @@ test "list2"   { assert {[llength [list 1 2 3]] == 3 } }
 test "lindex"  { assert {[lindex {1 2 3} 1] == 2} }
 
 test "take" {
-    set x [take 1 {1 2 3}]
+    set l [list 1 2 3]
+    set x [take 1 l]
     assert "$x == 1"
 }
 
 test "take2" {
-    set x [take 2 {1 2 3}]
+    set l [list 1 2 3]
+    set x [take 2 l]
     set e [eql $x "1 2"]
-    assert "$e == 0"
+    assert "$e == 1"
+}
+
+test "drop" {
+    set l [list 1 2 3]
+    set x [drop 1 l]
+    assert "$x == 1"
+    set e [eql $l "2 3"]
+    assert "$e == 1"
 }

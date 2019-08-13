@@ -363,34 +363,47 @@ TclReturn TclStd_take(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         return TCL_BADCMD;
     }
     int to_take = TclValue_int(argv[1]);
-    TclValue *list = argv[2];
+    TclValue *list = Tcl_getVariable(vm, TclValue_str(argv[2]));
 
-    if (TclValue_type(list) == TCL_VALUE_LIST) {
-        for (int i = 0; i < to_take; i++) {
-            TclValue *v = TclValue_list_shift(list);
-            if (!v)
-                break;
-            TclValue_list_push(ret, v);
-            TclValue_delete(v);
-        }
-    } else {
-        TclValue *list;
-        TclValue_new_list(&list);
-
-        List *args = List_malloc();
-        Tcl_split(vm, TclValue_str(argv[2]), " \t\n", args); /* dirty */
-
-        if (List_size(args) < to_take)
-            to_take = List_size(args);
-
-        for (unsigned int i = 0; i < to_take; i++) {
-            TclValue *v;
-            TclValue_new(&v, List_index(args, i)->data);
-            TclValue_list_push(list, v);
-        }
-
-        TclValue_replace(ret, list);
+    if (TclValue_type(list) != TCL_VALUE_LIST) {
+        return TCL_EXCEPTION;
     }
+
+    TclValue *result;
+    TclValue_new_list(&result);
+
+    for (unsigned int i = 0; i < to_take; i++) {
+        TclValue *v = TclValue_list_elt(list, i);
+        TclValue_list_push(result, v);
+    }
+
+    TclValue_replace(ret, result);
+
+    return TCL_OK;
+}
+
+TclReturn TclStd_drop(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 3) {
+        return TCL_BADCMD;
+    }
+    int to_drop = TclValue_int(argv[1]);
+    TclValue *list = Tcl_getVariable(vm, TclValue_str(argv[2]));
+
+    if (TclValue_type(list) != TCL_VALUE_LIST) {
+        return TCL_EXCEPTION;
+    }
+
+    TclValue *result;
+    TclValue_new_list(&result);
+
+    for (unsigned int i = 0; i < to_drop; i++) {
+        TclValue *elt = TclValue_list_shift(list);
+        TclValue_list_push(result, elt);
+        TclValue_delete(elt);
+    }
+
+    TclValue_replace(ret, result);
+
     return TCL_OK;
 }
 
@@ -458,6 +471,7 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "noop", TclStd_noop);
     Tcl_register(vm, "null", TclStd_null);
     Tcl_register(vm, "take", TclStd_take);
+    Tcl_register(vm, "drop", TclStd_drop);
     Tcl_register(vm, "typeof", TclStd_typeof);
 
     List_new(&dlls);

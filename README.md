@@ -36,6 +36,7 @@ make all
 ```
 
 ## LIMITATIONS
+* Terrible runtime.
 * Terrible spaghetti-code parsing.
 * No non-numerical comparisons for conditionals (`expr` uses `mathexpr`, which does not
   support non-`int` types)

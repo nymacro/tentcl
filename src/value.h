@@ -47,6 +47,8 @@ void TclValue_list_push(TclValue *value, TclValue *v);
 void TclValue_list_push_str(TclValue *value, char *str);
 TclValue *TclValue_list_pop(TclValue *value);
 TclValue *TclValue_list_shift(TclValue *value);
+int TclValue_list_size(TclValue *value);
+TclValue *TclValue_list_elt(TclValue *value, int idx);
 
 #define TCL_VALUE_TAG_MASK 0x07
 #define TCL_VALUE_TAG_BITS 3
