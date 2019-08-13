@@ -20,4 +20,3 @@ test "take2" {
     set e [eql $x "1 2"]
     assert "$e == 0"
 }
-

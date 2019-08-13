@@ -3,9 +3,9 @@ SAN_FLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-
 EXTRA_CFLAGS=-O0 -g -Wall $(SAN_FLAGS)
 EXTRA_LDFLAGS=$(SAN_FLAGS)
 
-LIBS += -L/usr/local/lib \
-        -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
-        -Llineread -llineread -lpcre2-8
+LDFLAGS += -L/usr/local/lib \
+           -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
+           -Llineread -llineread -lpcre2-8
 
 CFLAGS = -Idstructs/src -Imathexpr/src -Ilineread/src \
          -I/usr/local/include \
@@ -16,6 +16,8 @@ OBJECT = src/value.o \
          src/tcl.o src/std.o src/repl.o src/ext.o src/regexp.o
 
 TCLSH_OBJS = src/tclsh.o
+
+LIBS = libtcl.a dstructs/libdstructs.a mathexpr/libmathexpr.a lineread/liblineread.a
 
 .PHONY: all clean test ctest
 
@@ -63,8 +65,8 @@ bindings_clean:
 libtcl.a: $(OBJECT)
 	$(AR) rc libtcl.a $(OBJECT)
 
-tclsh: libtcl.a $(TCLSH_OBJS)
-	$(CC) $(EXTRA_LDFLAGS) -o tclsh $(TCLSH_OBJS) -L. -ltcl $(LIBS)
+tclsh: $(LIBS) $(TCLSH_OBJS)
+	$(CC) $(EXTRA_LDFLAGS) -o tclsh $(TCLSH_OBJS) -L. -ltcl $(LDFLAGS)
 
 .c.o:
 	$(CC) -o $@ -c $< $(CFLAGS)
