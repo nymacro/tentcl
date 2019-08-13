@@ -189,6 +189,7 @@ TclReturn TclStd_set(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         TclValue *value = Tcl_getVariable(vm, TclValue_str(argv[1]));
         if (value) {
             TclValue_set(value, TclValue_str(argv[2]));
+            /* TclValue_replace(value, argv[2]); */
         } else {
             TclValue_new(&value, NULL);
             TclValue_replace(value, argv[2]);
@@ -578,11 +579,19 @@ TclReturn TclStd_list(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2)
         return TCL_BADCMD;
     int i;
-    TclValue_set(ret, "");
+    TclValue *list;
+    TclValue_new_list(&list);
+
     for (i = 1; i < argc; i++) {
-        TclValue_append(ret, TclValue_str(argv[i]));
-        TclValue_append(ret, " ");
+        TclValue_list_push(list, argv[i]);
     }
+    TclValue_replace(ret, list);
+
+    /* TclValue_set(ret, ""); */
+    /* for (i = 1; i < argc; i++) { */
+    /*     TclValue_append(ret, TclValue_str(argv[i])); */
+    /*     TclValue_append(ret, " "); */
+    /* } */
     return TCL_OK;
 }
 

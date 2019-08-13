@@ -174,6 +174,7 @@ TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
         fprintf(stderr, "%s\n", Tcl_returnString(status));
     }
     printf("-> %s\n", TclValue_str(ret));
+    printf("#: %s\n", TclValue_type_str(ret));
     TclValue_delete(ret);
 
     return TclRepl_repl_(vm, input, lr); /* hope your compiler does TCO */

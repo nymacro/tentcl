@@ -38,8 +38,15 @@ void TclValue_set_raw(TclValue *value, char *data, size_t len);
 void TclValue_set_null(TclValue *value);
 void TclValue_set_int(TclValue *value, int i);
 void TclValue_replace(TclValue*, TclValue*); /* Replace existing value */
+void TclValue_swap(TclValue *value, TclValue *value2); /* Swap existing values */
 void TclValue_append(TclValue *, char*); /* Append string to end of value */
 void TclValue_prepend(TclValue *, char*); /* Prepend string to start of value */
+
+void TclValue_new_list(TclValue **value);
+void TclValue_list_push(TclValue *value, TclValue *v);
+void TclValue_list_push_str(TclValue *value, char *str);
+TclValue *TclValue_list_pop(TclValue *value);
+TclValue *TclValue_list_shift(TclValue *value);
 
 #define TCL_VALUE_TAG_MASK 0x07
 #define TCL_VALUE_TAG_BITS 3
@@ -52,6 +59,7 @@ typedef enum {
     TCL_VALUE_INT = 0x01,
     TCL_VALUE_OBJ = 0x02,
     TCL_VALUE_FUN = 0x03,
+    TCL_VALUE_LIST = 0x04,
     TCL_VALUE_NULL = 255
 } TclValueType;
 
@@ -59,6 +67,7 @@ TclValueType TclValue_type(TclValue *v);
 TclValue *TclValue_coerce(TclValue *v, TclValueType new_type);
 
 char *TclValue_str(TclValue *v);
+char *TclValue_str_(TclValue *v);
 int TclValue_int(TclValue *v);
 int TclValue_null(TclValue *v);
 TclFunction_ TclValue_fun(TclValue *v);

@@ -8,14 +8,13 @@
  * - Namespaces
  * - Better debugging
  */
-#include "tcl.h"
 
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "List.h"
+#include "tcl.h"
 
 #include "common.h"
 
@@ -382,7 +381,11 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                 TclValue_new(&eval, NULL);
                 ret = Tcl_eval(vm, str, eval);
                 if (ret == TCL_OK && eval) {
-                    TclValue_append(result, TclValue_str(eval));
+                    if (TclValue_null(result)) {
+                        TclValue_replace(result, eval);
+                    } else {
+                        TclValue_append(result, TclValue_str(eval));
+                    }
                 }
                 TclValue_delete(eval);
                 free(str);

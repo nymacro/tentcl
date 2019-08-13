@@ -1,25 +1,34 @@
-SAN_FLAGS += #-fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls #-fsanitize-memory-track-origins=2
+SAN_FLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls #-fsanitize-memory-track-origins=2
 
 EXTRA_CFLAGS=-O0 -g -Wall $(SAN_FLAGS)
-EXTRA_EXEFLAGS=$(SAN_FLAGS)
+EXTRA_LDFLAGS=$(SAN_FLAGS)
 
 LIBS += -L/usr/local/lib \
         -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
         -Llineread -llineread -lpcre2-8
+
 CFLAGS = -Idstructs/src -Imathexpr/src -Ilineread/src \
          -I/usr/local/include \
          $(EXTRA_CFLAGS) \
          -DWITH_LIBRARIES
 
 OBJECT = src/value.o \
-         src/tcl.o src/std.o src/tclsh.o src/repl.o src/ext.o src/regexp.o
+         src/tcl.o src/std.o src/repl.o src/ext.o src/regexp.o
 
-.PHONY: all clean test
+TCLSH_OBJS = src/tclsh.o
+
+.PHONY: all clean test ctest
 
 all: dstructs mathexpr lineread tclsh #bindings_build
 
-test: tclsh
+test: tclsh ctest
 	./tclsh -Itest/test.tcl test/*_test.tcl
+
+ctest: all
+	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" EXTRA_LDFLAGS="$(EXTRA_LDFLAGS)" -C ctest all test
+
+ctest_clean:
+	$(MAKE) -C ctest clean
 
 dstructs: dstructs/libdstructs.a
 
@@ -51,8 +60,11 @@ bindings_build:
 bindings_clean:
 	-$(MAKE) -C bindings clean
 
-tclsh: $(OBJECT)
-	$(CC) $(EXTRA_EXEFLAGS) -o tclsh $(OBJECT) $(LIBS)
+libtcl.a: $(OBJECT)
+	$(AR) rc libtcl.a $(OBJECT)
+
+tclsh: libtcl.a $(TCLSH_OBJS)
+	$(CC) $(EXTRA_LDFLAGS) -o tclsh $(TCLSH_OBJS) -L. -ltcl $(LIBS)
 
 .c.o:
 	$(CC) -o $@ -c $< $(CFLAGS)
@@ -68,7 +80,7 @@ install: all
 	mkdir -p $(DESTDIR)/usr/share/doc/tentcl
 	cp docs.html $(DESTDIR)/usr/share/doc/tentcl
 
-clean: dstructs_clean mathexpr_clean lineread_clean bindings_clean 
+clean: dstructs_clean mathexpr_clean lineread_clean bindings_clean ctest_clean
 	-rm $(OBJECT)
 	-rm doc/reference.html
 	-rm tclsh

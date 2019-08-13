@@ -346,6 +346,54 @@ TclReturn TclStd_null(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+TclReturn TclStd_typeof(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 2) {
+        return TCL_BADCMD;
+    }
+
+    TclValue *value = Tcl_getVariable(vm, TclValue_str(argv[1]));
+    if (value)
+        TclValue_set(ret, TclValue_type_str(value));
+
+    return TCL_OK;
+}
+
+TclReturn TclStd_take(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 3) {
+        return TCL_BADCMD;
+    }
+    int to_take = TclValue_int(argv[1]);
+    TclValue *list = argv[2];
+
+    if (TclValue_type(list) == TCL_VALUE_LIST) {
+        for (int i = 0; i < to_take; i++) {
+            TclValue *v = TclValue_list_shift(list);
+            if (!v)
+                break;
+            TclValue_list_push(ret, v);
+            TclValue_delete(v);
+        }
+    } else {
+        TclValue *list;
+        TclValue_new_list(&list);
+
+        List *args = List_malloc();
+        Tcl_split(vm, TclValue_str(argv[2]), " \t\n", args); /* dirty */
+
+        if (List_size(args) < to_take)
+            to_take = List_size(args);
+
+        for (unsigned int i = 0; i < to_take; i++) {
+            TclValue *v;
+            TclValue_new(&v, List_index(args, i)->data);
+            TclValue_list_push(list, v);
+        }
+
+        TclValue_replace(ret, list);
+    }
+    return TCL_OK;
+}
+
 typedef void (*TclLibraryRegister)(Tcl *vm);
 
 /*tcl: use library
@@ -409,6 +457,8 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "leave", TclStd_leave);
     Tcl_register(vm, "noop", TclStd_noop);
     Tcl_register(vm, "null", TclStd_null);
+    Tcl_register(vm, "take", TclStd_take);
+    Tcl_register(vm, "typeof", TclStd_typeof);
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;
