@@ -68,7 +68,7 @@ void Tcl_free(Tcl *self);
 TclReturn Tcl_evalExpression(Tcl*, char*, TclValue*);
 TclReturn Tcl_eval(Tcl*, char*, TclValue*);
 TclReturn Tcl_funcall(Tcl*, char*, int, TclValue*[], TclValue*);
-TclValue* Tcl_expand(Tcl*, char*);
+TclReturn Tcl_expand(Tcl *vm, char *value, TclValue *result);
 void Tcl_split(Tcl*, char*, char*, List*);
 void Tcl_splitCommands(Tcl *, TclValue, List *);
 void Tcl_register(Tcl*, char*, TclFunction);

@@ -30,16 +30,16 @@ void TclValue_new(TclValue**, char*); /* Create Tcl value */
 void TclValue_new_ref(TclValue **, TclValue *); /* New value referencing existing value */
 void TclValue_new_object(TclValue **value, char *type_str, void *obj, void (*free)(void *));
 void TclValue_new_function(TclValue **value, TclFunction_ function);
+void TclValue_new_int(TclValue **value, int i);
 void TclValue_delete(TclValue*); /* Destroy Tcl value */
 void TclValue_ref(TclValue *); /* Increment reference count on value */
 void TclValue_set(TclValue*, char*); /* Set Tcl value */
 void TclValue_set_raw(TclValue *value, char *data, size_t len);
 void TclValue_set_null(TclValue *value);
+void TclValue_set_int(TclValue *value, int i);
 void TclValue_replace(TclValue*, TclValue*); /* Replace existing value */
 void TclValue_append(TclValue *, char*); /* Append string to end of value */
 void TclValue_prepend(TclValue *, char*); /* Prepend string to start of value */
-
-/* TclValue TclValue_const(char *value); */
 
 #define TCL_VALUE_TAG_MASK 0x07
 #define TCL_VALUE_TAG_BITS 3

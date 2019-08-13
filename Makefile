@@ -6,10 +6,10 @@ EXTRA_EXEFLAGS=$(SAN_FLAGS)
 LIBS += -L/usr/local/lib \
         -ldl -rdynamic -Ldstructs -ldstructs -Lmathexpr -lmathexpr -lm \
         -Llineread -llineread -lpcre2-8
-CFLAGS += -Idstructs/src -Imathexpr/src -Ilineread/src \
-          -I/usr/local/include \
-          $(EXTRA_CFLAGS) \
-          -DWITH_LIBRARIES
+CFLAGS = -Idstructs/src -Imathexpr/src -Ilineread/src \
+         -I/usr/local/include \
+         $(EXTRA_CFLAGS) \
+         -DWITH_LIBRARIES
 
 OBJECT = src/value.o \
          src/tcl.o src/std.o src/tclsh.o src/repl.o src/ext.o src/regexp.o

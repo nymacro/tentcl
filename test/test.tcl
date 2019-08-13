@@ -26,9 +26,9 @@ proc eval_catch {test_body} {
 }
 
 proc eval_catch_pending {test_body} {
-    set err [catch { eval $test_body }]
+    set err_val [catch { eval $test_body } err]
     if {$err != 0} {
-        puts stderr "    Fail ($err)"
+        puts stderr "    Fail ($err : $err_val)"
     } else {
         incr_pending
     }
@@ -46,29 +46,33 @@ proc pending {test_name test_body} {
 
 proc assert {condition} {
     if $condition {
-        return 1
+        noop
     } else {
-        # repl
+        repl
         puts "    failed condition $condition"
         fail
     }
 }
 
 proc assert_error {error block} {
-    set err [catch $block]
+    set err [catch $block ret]
     assert "$err == $error"
 }
 
-proc fail {} {
-    exit 2
+proc fail {args} {
+    if {[llength $args] > 0} {
+        throw [lindex $args 0]
+    } else {
+        throw
+    }
 }
 
 proc run {} {
     set test_files [glob "test/0*_*.tcl"]
     foreach test $test_files {
         puts "$test"
-        set ret [catch { source $test }]
-        if {$ret != 0} { puts stderr "  ERROR running $test ($ret)" }
+        set err [catch { source $test } ret]
+        if {$err != 0} { puts stderr "  ERROR running $test ($ret)" }
     }
     puts "[llength $test_files] suites"
 }

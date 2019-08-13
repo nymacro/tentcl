@@ -38,7 +38,6 @@ test "label_goto" {
 
     label l {
         set count [incr $count -1]
-        puts "looping $count"
         if {$count > 0} {
             goto l
         }

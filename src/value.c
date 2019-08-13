@@ -63,6 +63,11 @@ void TclValue_new(TclValue **value, char *init) {
     *value = v;
 }
 
+void TclValue_new_int(TclValue **value, int i) {
+    TclValue_new(value, NULL);
+    TclValue_set_int(*value, i);
+}
+
 TclValueObject *TclValueObject_new(char *type_str, void *obj, void (*free)(void *)) {
     TclValueObject *v = (TclValueObject*)malloc(sizeof(TclValueObject));
     v->type_str = type_str;
@@ -132,6 +137,11 @@ void TclValue_set_null(TclValue *value) {
     value->container->value = NULL;
 }
 
+void TclValue_set_int(TclValue *value, int i) {
+    TclValue_free_value_(value);
+    value->container->value = (char*)TCL_VALUE_TAG(i << 3, TCL_VALUE_INT);
+}
+
 void TclValue_set_object(TclValue *value, char *type_str, void *f, void (*free)(void *)) {
     TclValue *obj;
     TclValue_new_object(&obj, type_str, f, free);
@@ -176,11 +186,6 @@ void TclValue_prepend(TclValue *value, char *data) {
         TclValue_set_(value, strdup(data));
     }
 }
-
-/* TclValue TclValue_const(char *value) { */
-/*     TclValue v = { value, 0 }; */
-/*     return v; */
-/* } */
 
 #define TCL_VALUE_GET_TAG(value) ((unsigned long)(value) & TCL_VALUE_TAG_MASK)
 TclValueType TclValue_type(TclValue *v) {

@@ -40,7 +40,7 @@ TclReturn TclStd_info(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     static int count = 0; // unique id returned for lambda
     if (argc != 3) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
 
     char lambdaName[256];
@@ -68,7 +68,7 @@ TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_add(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     char result[32];
     int sum = 0;
@@ -87,7 +87,7 @@ TclReturn TclStd_add(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_sub(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 3) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     char result[32];
     int sum = TclValue_int(argv[1]);
@@ -106,7 +106,7 @@ TclReturn TclStd_sub(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_mul(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     char result[32];
     int sum = TclValue_int(argv[1]);
@@ -125,7 +125,7 @@ TclReturn TclStd_mul(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_div(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     char result[32];
     int sum = TclValue_int(argv[1]);
@@ -139,18 +139,16 @@ TclReturn TclStd_div(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
-/*tcl: eql num num
+/*tcl: eql str str
  * Returns 1 (true) if both arguments are equal, false otherwise.
  */
 TclReturn TclStd_eql(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
-    int first = TclValue_int(argv[1]);
-    int second = TclValue_int(argv[2]);
-    char result[32];
-    sprintf(result, "%i", first == second);
-    TclValue_set(ret, result);
+    char *first = TclValue_str(argv[1]);
+    char *second = TclValue_str(argv[2]);
+    TclValue_set_int(ret, strcmp(first, second) == 0);
     return TCL_OK;
 }
 
@@ -160,7 +158,7 @@ TclReturn TclStd_eql(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_gt(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     int first = TclValue_int(argv[1]);
     int second = TclValue_int(argv[2]);
@@ -176,7 +174,7 @@ TclReturn TclStd_gt(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_lt(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     int first = TclValue_int(argv[1]);
     int second = TclValue_int(argv[2]);
@@ -192,7 +190,7 @@ TclReturn TclStd_lt(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_or(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     TclValue *tmp = NULL;
     int elmret;
@@ -216,7 +214,7 @@ TclReturn TclStd_or(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_and(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc < 2) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     TclValue *tmp = NULL;
     int elmret;
@@ -243,7 +241,7 @@ TclReturn TclStd_and(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  */
 TclReturn TclStd_range(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
     int i;
     int incr = 1;
@@ -290,10 +288,10 @@ TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     TclValue *obj;
 
     if (argc != 3) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
 
-    jmp_buf *env = malloc(sizeof(jmp_buf));
+    jmp_buf *env = (jmp_buf*)malloc(sizeof(jmp_buf));
     TclValue_new_object(&obj, "label", env, free);
     Tcl_addVariable_(vm, TclValue_str(argv[1]), obj);
 
@@ -310,7 +308,7 @@ TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
 TclReturn TclStd_goto(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 2) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
 
     /* lookup name and see if it is a label */
@@ -324,7 +322,7 @@ TclReturn TclStd_goto(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
 TclReturn TclStd_leave(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 2) {
-        return TCL_EXCEPTION;
+        return TCL_BADCMD;
     }
 
     /* lookup name and see if it is a label */
@@ -337,6 +335,14 @@ TclReturn TclStd_leave(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 }
 
 TclReturn TclStd_noop(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    return TCL_OK;
+}
+
+TclReturn TclStd_null(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 2) {
+        return TCL_BADCMD;
+    }
+    TclValue_set_null(ret);
     return TCL_OK;
 }
 
@@ -402,6 +408,7 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "goto", TclStd_goto);
     Tcl_register(vm, "leave", TclStd_leave);
     Tcl_register(vm, "noop", TclStd_noop);
+    Tcl_register(vm, "null", TclStd_null);
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;

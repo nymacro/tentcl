@@ -207,15 +207,21 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
 
     TclValue **argv;
     argv = (TclValue**)malloc(sizeof(TclValue*) * argc);
+    memset(argv, 0, sizeof(TclValue*) * argc);
 
     int i;
     for (i = 0; i < argc; i++) {
-        argv[i] = Tcl_expand(vm, List_index(list, i)->data);
+        TclValue_new(&argv[i], NULL);
+        status = Tcl_expand(vm, List_index(list, i)->data, argv[i]);
+        if (status != TCL_OK) {
+            goto fail;
+        }
     }
 
     /* call the function */
     status = Tcl_funcall(vm, TclValue_str(argv[0]), argc, argv, ret);
 
+fail:
     /* free arguments */
     for (i = 0; i < argc; i++) {
         TclValue_delete(argv[i]);
@@ -251,7 +257,8 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
                 break;
             if (status == TCL_BREAK)
                 break;
-            fprintf(stderr, "%s from: %s\n", Tcl_returnString(status), (char*)List_index(list, i)->data);
+            /* fprintf(stderr, "%s from: %s\n", Tcl_returnString(status), (char*)List_index(list, i)->data); */
+            /* TclValue_set(ret, (char*)List_index(list, i)->data); */
             break;
         }
     }
@@ -320,8 +327,9 @@ static char *Tcl_getKeyedValue_(Tcl *vm, char *str, char *key) {
     return result;
 }
 
-void Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
+TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
     int i;
+    TclReturn ret = TCL_OK;
 
     for (i = 0; i < strlen(value); i++) {
         if (value[i] == '\\') {
@@ -369,20 +377,17 @@ void Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
         } else if (value[i] == '[') {
             int end = findMatching(value, i, ']');
             if (end > 0) {
-                TclReturn status;
                 char *str = Tcl_substring_(value, i + 1, end);
                 TclValue *eval = NULL;
                 TclValue_new(&eval, NULL);
-                status = Tcl_eval(vm, str, eval);
-                if (status == TCL_OK && eval) {
+                ret = Tcl_eval(vm, str, eval);
+                if (ret == TCL_OK && eval) {
                     TclValue_append(result, TclValue_str(eval));
-                    /* TclValue_replace(result, eval); */
-                } else {
-                    /* FIXME */
-                    abort();
                 }
                 TclValue_delete(eval);
                 free(str);
+                if (ret != TCL_OK)
+                    return ret;
                 i = end;
             } else {
                 printf("ERROR: [ UNMATCHED\n");
@@ -401,10 +406,15 @@ void Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
             int end = findMatching(value, i, '"');
             if (end > 0) {
                 char *str = Tcl_substring_(value, i + 1, end);
-                TclValue *eval = Tcl_expand(vm, str);
+                TclValue *eval;
+                TclValue_new(&eval, NULL);
+                ret = Tcl_expand(vm, str, eval);
                 TclValue_append(result, TclValue_str(eval));
                 TclValue_delete(eval);
                 free(str);
+                if (ret != TCL_OK) {
+                    return ret;
+                }
                 i = end;
             } else {
                 printf("ERROR: \" UNMATCHED\n");
@@ -415,6 +425,8 @@ void Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
             TclValue_append(result, tmp);
         }
     }
+
+    return ret;
 }
 
 /* Tcl_expand
@@ -422,11 +434,8 @@ void Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
  *
  * @return Result of expansion. Must be freed with TclValue_delete
  */
-TclValue *Tcl_expand(Tcl *vm, char *value) {
-    TclValue *result = NULL;
-    TclValue_new(&result, NULL);
-    Tcl_expand_(vm, value, result);
-    return result;
+TclReturn Tcl_expand(Tcl *vm, char *value, TclValue *result) {
+    return Tcl_expand_(vm, value, result);
 }
 
 /* charisin

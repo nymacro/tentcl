@@ -162,16 +162,16 @@ TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
     TclValue *ret = NULL;
     TclValue_new(&ret, NULL);
     status = Tcl_eval(vm, line, ret);
+    TclValue *interactive = Tcl_getVariable(vm, "tcl_interactive");
     // shell command execution if command doesn't exist
-    if (status == TCL_BADCMD) {
-        TclValue *interactive = Tcl_getVariable(vm, "tcl_interactive");
-        if (interactive && TclValue_int(interactive)) {
-            printf("trying to execute external command\n");
-            system(line);
-        }
+    if (status == TCL_BADCMD && interactive && TclValue_int(interactive)) {
+        printf("trying to execute external command\n");
+        system(line);
     } else if (status == TCL_EXIT || status == TCL_INTERRUPT) {
         TclValue_delete(ret);
         return status;
+    } else if (status != TCL_OK) {
+        fprintf(stderr, "%s\n", Tcl_returnString(status));
     }
     printf("-> %s\n", TclValue_str(ret));
     TclValue_delete(ret);
