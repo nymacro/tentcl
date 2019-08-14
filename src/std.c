@@ -587,11 +587,6 @@ TclReturn TclStd_list(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
     TclValue_replace(ret, list);
 
-    /* TclValue_set(ret, ""); */
-    /* for (i = 1; i < argc; i++) { */
-    /*     TclValue_append(ret, TclValue_str(argv[i])); */
-    /*     TclValue_append(ret, " "); */
-    /* } */
     return TCL_OK;
 }
 
@@ -602,15 +597,9 @@ TclReturn TclStd_llength(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 2) {
         return TCL_BADCMD;
     }
-    List elms;
-    List_new(&elms);
-    Tcl_split(vm, TclValue_str(argv[1]), " \t", &elms);
 
-    char tmp[32];
-    snprintf(tmp, 32, "%i", List_size(&elms));
-    TclValue_set(ret, tmp);
-
-    List_delete(&elms);
+    TclValue_coerce(argv[1], TCL_VALUE_LIST);
+    TclValue_set_int(ret, TclValue_list_size(argv[1]));
 
     return TCL_OK;
 }
@@ -622,14 +611,15 @@ TclReturn TclStd_lindex(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc != 3) {
         return TCL_BADCMD;
     }
-    List elms;
-    List_new(&elms);
-    Tcl_split(vm, TclValue_str(argv[1]), " \t", &elms);
 
-    if (TclValue_int(argv[2]) < List_size(&elms))
-        TclValue_set(ret, List_index(&elms, TclValue_int(argv[2]))->data);
+    TclValue_coerce(argv[1], TCL_VALUE_LIST);
+    TclValue *v = TclValue_list_elt(argv[1], TclValue_int(argv[2]));
 
-    List_delete(&elms);
+    if (!v) {
+        return TCL_EXCEPTION;
+    }
+
+    TclValue_replace(ret, v);
 
     return TCL_OK;
 }

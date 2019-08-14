@@ -7,6 +7,7 @@ test "list_type" {
 pending "list" { assert {[list 1 2 3] == {1 2 3}} }
 pending "listne" { assert {[list 1 2 3] != {1 2 3}} }
 test "llength" { assert {[llength {1 2 3}] == 3} }
+test "llength2" { assert {[llength {1 {2 3}}] == 2} }
 test "list2"   { assert {[llength [list 1 2 3]] == 3 } }
 test "lindex"  { assert {[lindex {1 2 3} 1] == 2} }
 
@@ -29,4 +30,8 @@ test "drop" {
     assert "$x == 1"
     set e [eql $l "2 3"]
     assert "$e == 1"
+
+    drop 2 l
+    set le [llength $l]
+    assert "$le == 0"
 }

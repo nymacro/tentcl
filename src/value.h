@@ -28,6 +28,7 @@ typedef int (*TclFunction_)(void*, int, TclValue*[], TclValue*);
 /* Tcl Value Primitive Functions */
 void TclValue_new(TclValue**, char*); /* Create Tcl value */
 void TclValue_new_ref(TclValue **, TclValue *); /* New value referencing existing value */
+void TclValue_detach(TclValue *); /* Copy value and remove shared references */
 void TclValue_new_object(TclValue **value, char *type_str, void *obj, void (*free)(void *));
 void TclValue_new_function(TclValue **value, TclFunction_ function);
 void TclValue_new_int(TclValue **value, int i);
@@ -70,6 +71,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type);
 
 char *TclValue_str(TclValue *v);
 char *TclValue_str_(TclValue *v);
+char *TclValue_str_esc(TclValue *v);
 int TclValue_int(TclValue *v);
 int TclValue_null(TclValue *v);
 TclFunction_ TclValue_fun(TclValue *v);

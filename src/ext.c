@@ -365,9 +365,10 @@ TclReturn TclStd_take(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     int to_take = TclValue_int(argv[1]);
     TclValue *list = Tcl_getVariable(vm, TclValue_str(argv[2]));
 
-    if (TclValue_type(list) != TCL_VALUE_LIST) {
-        return TCL_EXCEPTION;
-    }
+    TclValue_coerce(list, TCL_VALUE_LIST);
+
+    if (to_take > TclValue_list_size(list))
+        to_take = TclValue_list_size(list);
 
     TclValue *result;
     TclValue_new_list(&result);
@@ -389,9 +390,10 @@ TclReturn TclStd_drop(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     int to_drop = TclValue_int(argv[1]);
     TclValue *list = Tcl_getVariable(vm, TclValue_str(argv[2]));
 
-    if (TclValue_type(list) != TCL_VALUE_LIST) {
-        return TCL_EXCEPTION;
-    }
+    TclValue_coerce(list, TCL_VALUE_LIST);
+
+    if (to_drop > TclValue_list_size(list))
+        to_drop = TclValue_list_size(list);
 
     TclValue *result;
     TclValue_new_list(&result);
@@ -403,6 +405,21 @@ TclReturn TclStd_drop(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
 
     TclValue_replace(ret, result);
+
+    return TCL_OK;
+}
+
+TclReturn TclStd_length(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 2) {
+        return TCL_BADCMD;
+    }
+    TclValue *list = Tcl_getVariable(vm, TclValue_str(argv[1]));
+
+    if (TclValue_type(list) != TCL_VALUE_LIST) {
+        return TCL_EXCEPTION;
+    }
+
+    TclValue_set_int(ret, TclValue_list_size(list));
 
     return TCL_OK;
 }
@@ -472,6 +489,7 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "null", TclStd_null);
     Tcl_register(vm, "take", TclStd_take);
     Tcl_register(vm, "drop", TclStd_drop);
+    Tcl_register(vm, "length", TclStd_length);
     Tcl_register(vm, "typeof", TclStd_typeof);
 
     List_new(&dlls);

@@ -353,10 +353,9 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
             }
 
             char *name = Tcl_substring_(value, i + 1, j);
-            HashPair *p = Hash_get(vm->variables, name);
-            if (p->data) {
-                TclValue *value = p->data;
-                char *v = TclValue_str(value);
+            TclValue *var = Tcl_getVariable(vm, name);
+            if (var) {
+                char *v = TclValue_str(var);
                 if (hashed) {
                     int end = findMatching(v, j, ')');
                     char *key = Tcl_substring_(v, j + 1, end);

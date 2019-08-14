@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "List.h"
 
@@ -88,6 +89,18 @@ void TclValue_new_object(TclValue **value, char *type_str, void *obj, void (*fre
 void TclValue_new_function(TclValue **value, TclFunction_ function) {
     TclValue_new_(value);
     (*value)->container->value = (char*)TCL_VALUE_TAG(function, TCL_VALUE_FUN);
+}
+
+void TclValue_detach(TclValue *value) {
+    if (TclValue_null(value))
+        return;
+    if (value->container->ref == 1)
+        return;
+
+    TclValue *tmp;
+    TclValue_new(&tmp, TclValue_str(value));
+    TclValue_replace(value, tmp);
+    TclValue_delete(tmp);
 }
 
 static void List_TclValue_delete(ListNode *node) {
@@ -290,13 +303,17 @@ int TclValue_list_join_(TclValue *value, char *buf, unsigned int buf_len) {
     for (unsigned int i = 0; i < size; i++) {
         if (buf_len == 0)
             break;
-        unsigned int t = snprintf(buf, buf_len, "%s%*s",
-                                  TclValue_str(List_index(list, i)->data),
-                                  i != size-1, "");
+        char *s = (i == size-1) ? "" : " ";
+        unsigned int t = snprintf(buf, buf_len, "%s%s",
+                                  TclValue_str_esc(List_index(list, i)->data),
+                                  s);
         used += t;
         buf_len -= t;
         buf += t;
     }
+
+    buf[used] = '\0';
+
     return used;
 }
 
@@ -330,10 +347,15 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
     /* any -> list */
     if (new_type == TCL_VALUE_LIST) {
         TclValue *list;
-        TclValue *n;
         TclValue_new_list(&list);
-        TclValue_new_ref(&n, v);
-        TclValue_list_push(list, n);
+
+        List *elms = List_malloc();
+        Tcl_split(NULL, TclValue_str(v), " \t", elms);
+
+        for (unsigned int i = 0; i < List_size(elms); i++) {
+            TclValue_list_push_str(list, List_index(elms, i)->data);
+        }
+
         TclValue_replace(v, list);
     } else
     /* null -> any */
@@ -350,7 +372,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
 }
 
 char *TclValue_str_(TclValue *v) {
-    static char empty[] = "NULL";
+    static char empty[] = "";
     static char int_buf[1024]; /* not thread safe */
 
     switch (TclValue_type(v)) {
@@ -377,6 +399,31 @@ char *TclValue_str_(TclValue *v) {
 char *TclValue_str(TclValue *v) {
     /* TclValue_coerce(v, TCL_VALUE_STR); */
     return TclValue_str_(v);
+}
+
+char *TclValue_str_esc(TclValue *v) {
+    static char buf[1024]; /* having a real GC would be wonderful */
+    size_t buf_len = sizeof(buf) - 1;
+    char *str = TclValue_str_(v);
+    size_t str_len = strlen(str);
+
+    /* escape any space characters */
+    size_t i = 0, b = 0;
+    for (; i < str_len; i++) {
+        if (i > buf_len) { abort(); }
+
+        if (isspace(str[i])) {
+            buf[b++] = '\\';
+        }
+
+        if (i > buf_len) { abort(); }
+
+        buf[b++] = str[i];
+    }
+
+    buf[b] = '\0';
+
+    return buf;
 }
 
 int TclValue_int(TclValue *v) {
