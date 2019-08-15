@@ -92,6 +92,9 @@ char *LineRead_readLine(LineRead *self) {
     do {
         int len = strlen(self->buf);
         int historyLength = List_size(self->history);
+        int special = 0;
+
+        fflush(stdout);
 
         /* get the character */
         self->lastChar = getchar();
@@ -100,13 +103,20 @@ char *LineRead_readLine(LineRead *self) {
         if (self->lastChar == '\033') {
             getchar(); /* skip the [ */
             self->lastChar = getchar();
+            special = 1;
+        }
 
+        /* printf("\n%i%s=", self->lastChar, special ? "s" : ""); */
+
+        if (special || self->lastChar == 14 || self->lastChar == 16) {
             switch (self->lastChar) {
+            case 16:
             case 'A': /* up arrow */
-                if (self->lastHistory < historyLength - 1)
+                if (self->lastHistory <= historyLength - 1)
                     self->lastHistory++;
                 break;
 
+            case 14:
             case 'B': /* down arrow */
                 if (self->lastHistory > 0)
                     self->lastHistory--;
@@ -116,16 +126,16 @@ char *LineRead_readLine(LineRead *self) {
                 continue;
             }
 
-            if (historyLength != 0) {
+            if (historyLength > 0 && self->lastHistory < historyLength) {
                 char *item = (char*)List_index(self->history, self->lastHistory)->data;
                 strcpy(self->buf, item);
 
                 /* redisplay */
-                printf("\r%*s\r%s", len, "", self->buf);
+                printf("\r%*s\r> %s", len, "", self->buf);
             }
             continue;
         }
-        
+
         /* filter/substitute characters */
         if (self->lastChar == '\r')
             self->lastChar = '\n';

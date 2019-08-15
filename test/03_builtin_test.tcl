@@ -1,3 +1,7 @@
+test "string_esc" {
+    set i "abc\" cd"
+    assert {[eql $i "abc\" cd"] == 1}
+}
 test "apply" {
     apply set {i 100}
     assert "$i == 100"

@@ -69,7 +69,7 @@ TclReturn Tcl_evalExpression(Tcl*, char*, TclValue*);
 TclReturn Tcl_eval(Tcl*, char*, TclValue*);
 TclReturn Tcl_funcall(Tcl*, char*, int, TclValue*[], TclValue*);
 TclReturn Tcl_expand(Tcl *vm, char *value, TclValue *result);
-void Tcl_split(Tcl*, char*, char*, List*);
+int Tcl_split(Tcl*, char*, char*, List*);
 void Tcl_register(Tcl*, char*, TclFunction);
 void Tcl_addVariable(Tcl *self, char *name, char *value);
 void Tcl_addVariable_(Tcl *self, char *name, TclValue *val);

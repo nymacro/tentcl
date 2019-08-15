@@ -19,39 +19,39 @@ TCLSH_OBJS = src/tclsh.o
 
 LIBS = libtcl.a dstructs/libdstructs.a mathexpr/libmathexpr.a lineread/liblineread.a
 
-.PHONY: all clean test ctest
+.PHONY: all clean test ctest dstructs mathexpr lineread
 
 all: dstructs mathexpr lineread tclsh #bindings_build
 
 test: tclsh ctest
 	./tclsh -Itest/test.tcl test/*_test.tcl
 
-ctest: all
+ctest: $(LIBS)
 	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" EXTRA_LDFLAGS="$(EXTRA_LDFLAGS)" -C ctest all test
 
 ctest_clean:
 	$(MAKE) -C ctest clean
 
-dstructs: dstructs/libdstructs.a
-
-dstructs/libdstructs.a:
+dstructs:
 	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" -C dstructs
+
+dstructs/libdstructs.a: dstructs
 
 dstructs_clean:
 	-$(MAKE) -C dstructs clean
 
-mathexpr: mathexpr/libmathexpr.a
-
-mathexpr/libmathexpr.a:
+mathexpr:
 	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" -C mathexpr
+
+mathexpr/libmathexpr.a: mathexpr
 
 mathexpr_clean:
 	-$(MAKE) -C mathexpr clean
 
-lineread: lineread/liblineread.a
-
-lineread/liblineread.a:
+lineread:
 	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" -C lineread
+
+lineread/liblineread.a: lineread
 
 lineread_clean:
 	-$(MAKE) -C lineread clean

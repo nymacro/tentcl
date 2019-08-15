@@ -453,17 +453,21 @@ static int charisin(char c, char *m) {
 
 /* Tcl_split
  * Split string into individual elements, obeying Tcl syntax rules.
+ *
+ * return non-zero if unbalanced input
  */
-void Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
+int Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
     int i;
     int last = 0;
     int quoted = 0;
     int braces = 0;
     int squares = 0;
 
-    result->compare = Tcl_split_compare;
-    result->alloc = Tcl_split_alloc;
-    result->dealloc = Tcl_split_dealloc;
+    if (result) {
+        result->compare = Tcl_split_compare;
+        result->alloc = Tcl_split_alloc;
+        result->dealloc = Tcl_split_dealloc;
+    }
 
     for (i = 0; i < strlen(value); i++) {
         if (value[i] == '{' && !squares && !quoted)
@@ -476,6 +480,9 @@ void Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
             squares--;
         if (value[i] == '"' && !braces && !squares)
             quoted = !quoted;
+
+        if (value[i] == '\\')
+            continue;
 
         if (charisin(value[i], delims) && i == last) {
             last++;
@@ -491,15 +498,18 @@ void Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
                 continue;
             } else {
                 char *str = Tcl_substring_(value, last, i);
-                List_push(result, str);
+                if (result)
+                    List_push(result, str);
                 last = i + 1;
                 continue;
             }
         }
     }
 
-    if (!quoted && !braces && !squares && last < i) 
+    if (!quoted && !braces && !squares && last < i && result) 
         List_push(result, Tcl_substring_(value, last, strlen(value)));
+
+    return quoted || braces || squares;
 }
 
 /* Tcl_register
@@ -585,17 +595,5 @@ void Tcl_popNamespace(Tcl *self) {
  * Test for a complete Tcl expression
  */
 int Tcl_isComplete(Tcl *self, char *expr) {
-    int i, braces = 0, quotes = 0;
-    for (i = 0; i < strlen(expr); i++) {
-        if (expr[i] == '"') {
-            quotes = !quotes;
-        } else if (expr[i] == '{') {
-            braces++;
-        } else if (expr[i] == '}') {
-            braces--;
-        }
-    }
-    if (braces == 0 && quotes == 0)
-        return 1;
-    return 0;
+    return !Tcl_split(self, expr, "\n;", NULL);
 }

@@ -324,6 +324,8 @@ TclValueType TclValue_type(TclValue *v) {
     return TCL_VALUE_GET_TAG(v->container->value);
 }
 
+int Tcl_split(void*, char*, char*, List*);
+
 TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
     int int_val;
     char *str_val;

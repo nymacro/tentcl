@@ -8,6 +8,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <unistd.h>
+#include <termios.h>
 
 #include "repl.h"
 
@@ -148,9 +149,22 @@ TclReturn TclRepl_repl_(Tcl *vm, FILE *input, LineRead *lr) {
 #else
     printf("%s", prompt);
     char *line = NULL;
+
+    /* struct termios tio, b; */
+    /* tcgetattr(0, &tio); */
+    /* tcgetattr(0, &b); */
+    /* tio.c_cflag &= ~(CSIZE|PARENB); */
+    /* tio.c_cflag |= CS8; */
+    /* tio.c_lflag &= ~ECHO; */
+    /* tcsetattr(0, TCSANOW, &tio); */
+
+    /* TODO use termios */
     system("stty raw -echo");
     line = LineRead_readLine(lr);
     system("stty -raw echo");
+
+    /* tcsetattr(0, TCSANOW, &b); */
+
     if (line)
         LineRead_addHistory(lr, line);
 #endif
