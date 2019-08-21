@@ -20,14 +20,15 @@ static void TclValue_free_value_(TclValue *value) {
         free(value->container->value);
         break;
     case TCL_VALUE_OBJ:
-        obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(value->container->value);
+        obj = (TclValueObject*)TclValue_ptr(value);
         if (obj->free)
             obj->free(obj);
         free(obj);
         break;
     case TCL_VALUE_LIST:
-        list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+        list = (List*)TclValue_ptr(value);
         List_free(list);
+        break;
     default:
         break;
     }
@@ -57,7 +58,7 @@ void TclValue_new_(TclValue **value) {
 }
 
 void TclValue_new(TclValue **value, char *init) {
-    TclValue *v = (TclValue*)malloc(sizeof(TclValue));
+    TclValue *v;
     TclValue_new_(&v);
 
     if (init) {
@@ -78,12 +79,12 @@ TclValueObject *TclValueObject_new(char *type_str, void *obj, void (*free)(void 
     v->type_str = type_str;
     v->ptr = obj;
     v->free = free;
-    return (TclValueObject*)TCL_VALUE_TAG(v, TCL_VALUE_OBJ);
+    return v;
 }
 
 void TclValue_new_object(TclValue **value, char *type_str, void *obj, void (*free)(void *)) {
     TclValue_new_(value);
-    (*value)->container->value = (char*)TclValueObject_new(type_str, obj, free);
+    (*value)->container->value = (char*)TCL_VALUE_TAG(TclValueObject_new(type_str, obj, free), TCL_VALUE_OBJ);
 }
 
 void TclValue_new_function(TclValue **value, TclFunction_ function) {
@@ -181,6 +182,7 @@ void TclValue_set_object(TclValue *value, char *type_str, void *f, void (*free)(
     TclValue *obj;
     TclValue_new_object(&obj, type_str, f, (void (*)(void*))object_free);
     TclValue_replace(value, obj);
+    TclValue_delete(obj);
 }
 
 void TclValue_replace(TclValue *value, TclValue *value2) {
@@ -228,7 +230,7 @@ void TclValue_list_push(TclValue *value, TclValue *v) {
 
     TclValue_coerce(value, TCL_VALUE_LIST);
 
-    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    List *list = (List*)TclValue_ptr(value);
     TclValue *n;
     TclValue_new_ref(&n, v);
     List_push(list, n);
@@ -238,13 +240,14 @@ void TclValue_list_push_str(TclValue *value, char *str) {
     TclValue *v;
     TclValue_new(&v, str);
     TclValue_list_push(value, v);
+    TclValue_delete(v);
 }
 
 int TclValue_list_size(TclValue *value) {
     if (TclValue_type(value) != TCL_VALUE_LIST)
         return -1; /* oops? */
 
-    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    List *list = (List*)TclValue_ptr(value);
     return List_size(list);
 }
 
@@ -252,7 +255,7 @@ TclValue *TclValue_list_elt(TclValue *value, int idx) {
     if (TclValue_type(value) != TCL_VALUE_LIST)
         return NULL; /* oops? */
 
-    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    List *list = (List*)TclValue_ptr(value);
     unsigned int size = List_size(list);
     if (idx < 0) {
         idx = size - idx;
@@ -268,7 +271,7 @@ TclValue *TclValue_list_elt(TclValue *value, int idx) {
 TclValue *TclValue_list_pop(TclValue *value) {
     TclValue_coerce(value, TCL_VALUE_LIST);
 
-    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    List *list = (List*)TclValue_ptr(value);
     TclValue *ret = NULL;
     if (List_size(list) > 0) {
         ret = List_last(list)->data;
@@ -283,7 +286,7 @@ TclValue *TclValue_list_pop(TclValue *value) {
 TclValue *TclValue_list_shift(TclValue *value) {
     TclValue_coerce(value, TCL_VALUE_LIST);
 
-    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    List *list = (List*)TclValue_ptr(value);
     TclValue *ret = NULL;
     if (List_size(list) > 0) {
         ret = List_first(list)->data;
@@ -301,7 +304,7 @@ int TclValue_list_join_(TclValue *value, char *buf, unsigned int buf_len) {
     }
     unsigned int used = 0;
 
-    List *list = (List*)TCL_VALUE_TAG_REMOVE(value->container->value);
+    List *list = (List*)TclValue_ptr(value);
     unsigned int size = List_size(list);
 
     for (unsigned int i = 0; i < size; i++) {
@@ -363,6 +366,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
         }
 
         TclValue_replace(v, list);
+        TclValue_delete(list);
     } else
     /* null -> any */
     if (old_type == TCL_VALUE_NULL) {
@@ -396,7 +400,7 @@ char *TclValue_str_(TclValue *v) {
         return v->container->value;
     case TCL_VALUE_OBJ:
         snprintf(int_buf, sizeof(int_buf) - 1, "<%s>",
-                 ((TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value))->type_str);
+                 ((TclValueObject*)TclValue_ptr(v))->type_str);
         return int_buf;
     case TCL_VALUE_FUN:
         snprintf(int_buf, sizeof(int_buf) - 1, "<FUNCTION %p>", TclValue_fun(v));
@@ -459,14 +463,14 @@ static int oops(void *vm, int argc, TclValue *argv[], TclValue *ret) {
 TclFunction_ TclValue_fun(TclValue *v) {
     switch (TclValue_type(v)) {
     case TCL_VALUE_FUN:
-        return (TclFunction_)(TCL_VALUE_TAG_REMOVE(v->container->value));
+        return (TclFunction_)TclValue_ptr(v);
     default:
         return oops;
     }
 }
 
 int TclValue_null(TclValue *v) {
-    if (v == NULL || v->container == NULL || (v->container && v->container->value == NULL))
+    if (v == NULL || v->container == NULL || v->container->value == NULL)
         return 1;
     return 0;
 }

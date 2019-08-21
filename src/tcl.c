@@ -515,9 +515,10 @@ int Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
                 last = i + 1;
                 continue;
             } else {
-                char *str = Tcl_substring_(value, last, i);
-                if (result)
+                if (result) {
+                    char *str = Tcl_substring_(value, last, i);
                     List_push(result, str);
+                }
                 last = i + 1;
                 continue;
             }
