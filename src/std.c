@@ -869,6 +869,50 @@ TclReturn TclStd_upvar(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+static void namespace_copy_value(BTreeNode *node, void *data) {
+    Tcl *vm = (Tcl*)data;
+    HashPair *pair = (HashPair*)node->data;
+    if (pair->data) {
+        TclValue *v;
+        TclValue_new_ref(&v, pair->data);
+        Tcl_addVariable_(vm, pair->name, v);
+    }
+}
+
+TclReturn TclStd_uplevel(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    TclReturn status;
+
+    if (argc < 2 || argc > 3)
+        return TCL_BADCMD;
+
+    int level = 1;
+    TclValue *block;
+
+    if (argc == 3) {
+        level = TclValue_int(argv[1]);
+        block = argv[2];
+    } else {
+        block = argv[1];
+    }
+
+    /* save & change environment */
+    Hash *current_namespace = Tcl_getNamespace(vm, 0);
+    Hash *up_namespace = Tcl_getNamespace(vm, level);
+    Tcl_pushNamespace(vm);
+    /* ensure uplevel namespace isn't the current one, otherwise
+       there will be double ref incs */
+    if (up_namespace && up_namespace != current_namespace) {
+        Hash_map(up_namespace, namespace_copy_value, vm);
+    }
+    Hash_map(current_namespace, namespace_copy_value, vm);
+
+    /* eval */
+    status = Tcl_eval(vm, TclValue_str(block), ret);
+
+    Tcl_popNamespace(vm);
+
+    return status;
+}
 
 /**********************************************/
 
@@ -910,6 +954,7 @@ void TclStd_register(Tcl *vm) {
     Tcl_register(vm, "glob", TclStd_glob);
     Tcl_register(vm, "catch", TclStd_catch);
     Tcl_register(vm, "upvar", TclStd_upvar);
+    Tcl_register(vm, "uplevel", TclStd_uplevel);
 
     files = Hash_malloc();
     HashPair *p = Hash_get(files, "stdout");

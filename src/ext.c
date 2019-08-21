@@ -282,6 +282,10 @@ TclReturn TclStd_bindings(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 #define GOTO_IN 1
 #define GOTO_OUT 2
 
+static void label_free(TclValueObject *obj) {
+    free(obj->ptr);
+}
+
 /* this doesn't work due to setjmp returning before you can longjmp */
 TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     TclReturn status = TCL_OK;
@@ -292,7 +296,7 @@ TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
 
     jmp_buf *env = (jmp_buf*)malloc(sizeof(jmp_buf));
-    TclValue_new_object(&obj, "label", env, free);
+    TclValue_new_object(&obj, "label", env, (void (*)(void*))label_free);
     Tcl_addVariable_(vm, TclValue_str(argv[1]), obj);
 
     int j = setjmp(*env);
@@ -424,6 +428,14 @@ TclReturn TclStd_length(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+TclReturn TclExt_expand(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 2) {
+        return TCL_BADCMD;
+    }
+
+    return Tcl_expand(vm, TclValue_str(argv[1]), ret);
+}
+
 typedef void (*TclLibraryRegister)(Tcl *vm);
 
 /*tcl: use library
@@ -491,6 +503,9 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "drop", TclStd_drop);
     Tcl_register(vm, "length", TclStd_length);
     Tcl_register(vm, "typeof", TclStd_typeof);
+
+    /* For debugging */
+    Tcl_register(vm, "expand", TclExt_expand);
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;

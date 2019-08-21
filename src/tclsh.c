@@ -15,6 +15,7 @@
 #include "Hash.h"
 #include "std.h"
 #include "ext.h"
+#include "io.h"
 #include "regexp.h"
 
 #include "common.h"
@@ -98,6 +99,7 @@ int main(int argc, char *argv[]) {
     TclStd_register(&tcl);
     TclExt_register(&tcl);
     TclRegexp_register(&tcl);
+    TclIO_register(&tcl);
 
     TclValue_new(&ret, NULL);
 

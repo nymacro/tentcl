@@ -1,4 +1,4 @@
-SAN_FLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls #-fsanitize-memory-track-origins=2
+SAN_FLAGS += #-fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls #-fsanitize-memory-track-origins=2
 
 EXTRA_CFLAGS=-O0 -g -Wall $(SAN_FLAGS)
 EXTRA_LDFLAGS=$(SAN_FLAGS)
@@ -13,7 +13,8 @@ CFLAGS = -Idstructs/src -Imathexpr/src -Ilineread/src \
          -DWITH_LIBRARIES
 
 OBJECT = src/value.o \
-         src/tcl.o src/std.o src/repl.o src/ext.o src/regexp.o
+         src/tcl.o src/std.o src/repl.o src/ext.o src/regexp.o \
+	 src/record.o src/io.o
 
 TCLSH_OBJS = src/tclsh.o
 
@@ -84,5 +85,6 @@ install: all
 
 clean: dstructs_clean mathexpr_clean lineread_clean bindings_clean ctest_clean
 	-rm $(OBJECT)
+	-rm $(TCLSH_OBJS)
 	-rm doc/reference.html
 	-rm tclsh

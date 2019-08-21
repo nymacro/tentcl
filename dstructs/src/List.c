@@ -218,6 +218,18 @@ ListNode* List_index(List *list, unsigned int index) {
     }
     return (index == i) ? p : NULL;
 }
+/*
+ * List_rindex: get the node at the specified index from back of list
+ */
+ListNode* List_rindex(List *list, unsigned int index) {
+    ListNode *p = list->tail;
+    int i = 0;
+    while (p && i != index) {
+        p = p->prev;
+        ++i;;
+    }
+    return (index == i) ? p : NULL;
+}
 
 /*
  * List_find: find a specified node in the list

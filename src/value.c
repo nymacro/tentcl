@@ -1,6 +1,6 @@
 /*
- * Tentcl -- Built-in Types
- * Copyright (C) 2006-2018 Aaron Marks. All Rights Reserved.
+ * tentcl -- built-in types
+ * copyright (c) 2006-2018 aaron marks. all rights reserved.
  */
 #include "value.h"
 #include <stdio.h>
@@ -22,7 +22,7 @@ static void TclValue_free_value_(TclValue *value) {
     case TCL_VALUE_OBJ:
         obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(value->container->value);
         if (obj->free)
-            obj->free(obj->ptr);
+            obj->free(obj);
         free(obj);
         break;
     case TCL_VALUE_LIST:
@@ -173,9 +173,13 @@ void TclValue_set_int(TclValue *value, int i) {
     value->container->value = (char*)TCL_VALUE_TAG((unsigned long)i << 3, TCL_VALUE_INT);
 }
 
+static void object_free(TclValueObject *obj) {
+    free(obj->ptr);
+}
+
 void TclValue_set_object(TclValue *value, char *type_str, void *f, void (*free)(void *)) {
     TclValue *obj;
-    TclValue_new_object(&obj, type_str, f, free);
+    TclValue_new_object(&obj, type_str, f, (void (*)(void*))object_free);
     TclValue_replace(value, obj);
 }
 
@@ -373,6 +377,13 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
     return v;
 }
 
+void *TclValue_ptr(TclValue *v) {
+    if (TclValue_type(v) != TCL_VALUE_NULL)
+        return (void*)TCL_VALUE_TAG_REMOVE(v->container->value);
+    else
+        return NULL;
+}
+
 char *TclValue_str_(TclValue *v) {
     static char empty[] = "";
     static char int_buf[1024]; /* not thread safe */
@@ -466,11 +477,18 @@ int TclValue_str_cmp(TclValue *v, char *str) {
 
 int TclValue_type_object_cmp(TclValue *v, char *type_str) {
     if (TclValue_type(v) == TCL_VALUE_OBJ) {
-        TclValueObject *obj = (TclValueObject*)TCL_VALUE_TAG_REMOVE(v->container->value);
+        TclValueObject *obj = TclValue_ptr(v);
         return strcmp(obj->type_str, type_str);
     } else {
         return -1;
     }
+}
+
+void *TclValue_object_ptr(TclValue *v) {
+    if (TclValue_type(v) != TCL_VALUE_OBJ)
+        return NULL;
+    TclValueObject *obj = TclValue_ptr(v);
+    return obj->ptr;
 }
 
 char *TclValue_type_str(TclValue *type) {

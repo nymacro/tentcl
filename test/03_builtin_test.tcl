@@ -1,7 +1,12 @@
-test "string_esc" {
-    set i "abc\" cd"
-    assert {[eql $i "abc\" cd"] == 1}
+test "string-escape" {
+    assert {[eql "\"a b c\"" {"a b c"}] == 1}
+    assert {[eql a\ b\ c "a b c"] == 1}
+    assert {[eql "\\\"a b c\\\""  {\"a b c\"}] == 1}
+    assert {[eql "abc\" cd" {abc" cd}] == 1}
+    assert {[eql "hello \"world\" :)" "hello \"world\" :)"] == 1}
+    assert {[eql "\\\\" \\\\] == 1}
 }
+
 test "apply" {
     apply set {i 100}
     assert "$i == 100"

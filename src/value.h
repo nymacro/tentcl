@@ -69,6 +69,8 @@ typedef enum {
 TclValueType TclValue_type(TclValue *v);
 TclValue *TclValue_coerce(TclValue *v, TclValueType new_type);
 
+void *TclValue_ptr(TclValue *v);
+void *TclValue_object_ptr(TclValue *v);
 char *TclValue_str(TclValue *v);
 char *TclValue_str_(TclValue *v);
 char *TclValue_str_esc(TclValue *v);

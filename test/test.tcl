@@ -45,12 +45,14 @@ proc pending {test_name test_body} {
 }
 
 proc assert {condition} {
-    if $condition {
-        noop
-    } else {
-        # repl
-        puts "    failed condition $condition"
-        fail
+    uplevel 1 {
+        if $condition {
+            noop
+        } else {
+            puts "    failed condition $condition"
+            repl
+            fail
+        }
     }
 }
 

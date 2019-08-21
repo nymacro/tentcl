@@ -45,6 +45,7 @@ unsigned int List_size(List*);
 ListNode* List_first(List*);
 ListNode* List_last(List*);
 ListNode* List_index(List*, unsigned int);
+ListNode* List_rindex(List *, unsigned int);
 ListNode* List_find(List*, void*);
 
 #endif

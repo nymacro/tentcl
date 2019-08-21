@@ -127,3 +127,7 @@ int Hash_exists(Hash *hash, char *key) {
         return 1;
     return 0;
 }
+
+int Hash_size(Hash *hash) {
+    return BTree_size(&hash->tree);
+}

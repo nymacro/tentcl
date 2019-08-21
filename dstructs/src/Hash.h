@@ -45,5 +45,6 @@ HashPair* Hash_get(Hash*, char*);
 void Hash_remove(Hash*, HashPair*);
 void Hash_map(Hash*, BTreeNodeMapFunc, void *);
 int Hash_exists(Hash *hash, char *key);
+int Hash_size(Hash *hash);
 
 #endif

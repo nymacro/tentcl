@@ -104,6 +104,16 @@ static char* Tcl_substring_(char *string, unsigned int start, unsigned int end) 
     return result;
 }
 
+/* static void Tcl_unescape_(char *string) { */
+/*     size_t len = strlen(string)+1; */
+/*     for (size_t i = 0; i < len; i++) { */
+/*         if (string[i] == '\\') { */
+/*             memmove(&string[i], &string[i+1], len-i-1); */
+/*             --len; */
+/*         } */
+/*     } */
+/* } */
+
 /* Tcl_string_compare
  *
  */
@@ -127,7 +137,8 @@ static void Tcl_split_dealloc(ListNode *node) {
 }
 
 static void Hash_variables_dealloc_(HashPair *pair) {
-    TclValue_delete((TclValue*)pair->data);
+    if (pair->data)
+        TclValue_delete((TclValue*)pair->data);
 }
 
 /********/
@@ -211,7 +222,7 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
     int i;
     for (i = 0; i < argc; i++) {
         TclValue_new(&argv[i], NULL);
-        status = Tcl_expand(vm, List_index(list, i)->data, argv[i]);
+        status = Tcl_expand_(vm, List_index(list, i)->data, argv[i]);
         if (status != TCL_OK) {
             goto fail;
         }
@@ -405,14 +416,21 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                 printf("ERROR: { UNMATCHED\n");
             }
         } else if (value[i] == '"') {
-            int end = findMatching(value, i, '"');
+            int end = i;
+            while ((end = findMatching(value, end, '"'))) {
+                if (end < 0) break;
+                if (value[end-1] != '\\') break;
+            }
             if (end > 0) {
                 char *str = Tcl_substring_(value, i + 1, end);
+                /* Tcl_unescape_(str); */
+
                 TclValue *eval;
                 TclValue_new(&eval, NULL);
                 ret = Tcl_expand(vm, str, eval);
                 TclValue_append(result, TclValue_str(eval));
                 TclValue_delete(eval);
+
                 free(str);
                 if (ret != TCL_OK) {
                     return ret;
@@ -462,6 +480,7 @@ int Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
     int quoted = 0;
     int braces = 0;
     int squares = 0;
+    int escaped = 0;
 
     if (result) {
         result->compare = Tcl_split_compare;
@@ -470,30 +489,36 @@ int Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
     }
 
     for (i = 0; i < strlen(value); i++) {
-        if (value[i] == '{' && !squares && !quoted)
-            braces++;
-        else if (value[i] == '}' && !squares && !quoted)
-            braces--;
-        if (value[i] == '[' && !braces)
-            squares++;
-        else if (value[i] == ']' && !braces)
-            squares--;
-        if (value[i] == '"' && !braces && !squares)
-            quoted = !quoted;
-
-        if (value[i] == '\\')
-            continue;
-
-        if (charisin(value[i], delims) && i == last) {
-            last++;
+        if (value[i] == '\\' && !escaped) {
+            escaped = 1;
             continue;
         }
 
-        if ((value[i] == '\0' || charisin(value[i], delims))
-            && !quoted && !braces && !squares
-            && i > 0 && value[i - 1] != '\\') {
-            if ((i > 0 && charisin(value[i - 1], delims)) ||
-                (i == 0 && charisin(value[i], delims))) {
+        if (!escaped) {
+            if (value[i] == '{' && !squares && !quoted)
+                braces++;
+            if (value[i] == '}' && !squares && !quoted)
+                braces--;
+
+            if (value[i] == '[' && !braces)
+                squares++;
+            if (value[i] == ']' && !braces)
+                squares--;
+
+            if (value[i] == '"' && !braces && !squares)
+                quoted = !quoted;
+
+            if (charisin(value[i], delims) && i == last) {
+                last++;
+                continue;
+            }
+        }
+
+        if ((value[i] == '\0' || (!escaped && charisin(value[i], delims)))
+            && !quoted && !braces && !squares && i > 0) {
+            if (i > 0 && charisin(value[i - 1], delims) &&
+                charisin(value[i], delims)) {
+                /* skip delimiters preceded by delimiters */
                 last = i + 1;
                 continue;
             } else {
@@ -504,6 +529,8 @@ int Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
                 continue;
             }
         }
+
+        escaped = 0;
     }
 
     if (!quoted && !braces && !squares && last < i && result) 
@@ -556,7 +583,8 @@ TclValue *Tcl_getVariableUp(Tcl *self, char *name, int level) {
         return NULL;
 
     /* get from upper namespace */
-    ListNode *n = List_index(self->namespace, List_size(self->namespace) - level);
+    level -= 1;
+    ListNode *n = List_rindex(self->namespace, level);
     if (!n)
         return NULL;
 
@@ -589,6 +617,13 @@ void Tcl_popNamespace(Tcl *self) {
     List_pop(self->namespace);
     Hash_free(hash);
     self->variables = List_last(self->namespace)->data;
+}
+
+Hash *Tcl_getNamespace(Tcl *self, unsigned int idx) {
+    ListNode *node = List_rindex(self->namespace, idx);
+    if (node && node->data)
+        return node->data;
+    return NULL;
 }
 
 /* Tcl_isComplete
