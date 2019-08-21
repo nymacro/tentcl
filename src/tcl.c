@@ -104,16 +104,6 @@ static char* Tcl_substring_(char *string, unsigned int start, unsigned int end) 
     return result;
 }
 
-/* static void Tcl_unescape_(char *string) { */
-/*     size_t len = strlen(string)+1; */
-/*     for (size_t i = 0; i < len; i++) { */
-/*         if (string[i] == '\\') { */
-/*             memmove(&string[i], &string[i+1], len-i-1); */
-/*             --len; */
-/*         } */
-/*     } */
-/* } */
-
 /* Tcl_string_compare
  *
  */
@@ -295,10 +285,14 @@ TclReturn Tcl_funcall(Tcl *vm, char *function, int argc, TclValue *argv[], TclVa
 /* findMatching
  * Find character to match the given character
  */
-static int findMatching(char *str, int start, char c) {
+static int findMatching(char *str, int start, int can_escape, char c) {
     int count = 1;
     int i;
     for (i = start + 1; i < strlen(str); i++) {
+        if (can_escape && str[i] == '\\') {
+            i++;
+            continue;
+        }
         if (str[i] == str[start] && str[i] != c)
             count++;
         if (str[i] == c)
@@ -368,7 +362,7 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
             if (var) {
                 char *v = TclValue_str(var);
                 if (hashed) {
-                    int end = findMatching(v, j, ')');
+                    int end = findMatching(v, j, 0, ')');
                     char *key = Tcl_substring_(v, j + 1, end);
                     char *str = Tcl_getKeyedValue_(vm, v, key);
                     TclValue_append(result, str);
@@ -380,11 +374,12 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                 }
             } else {
                 printf("can't read \"%s\": no such variable\n", name);
+                return TCL_EXCEPTION;
             }
             free(name);
             i = j - 1;
         } else if (value[i] == '[') {
-            int end = findMatching(value, i, ']');
+            int end = findMatching(value, i, 0, ']');
             if (end > 0) {
                 char *str = Tcl_substring_(value, i + 1, end);
                 TclValue *eval = NULL;
@@ -404,9 +399,10 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                 i = end;
             } else {
                 printf("ERROR: [ UNMATCHED\n");
+                return TCL_EXCEPTION;
             }
         } else if (value[i] == '{') {
-            int end = findMatching(value, i, '}');
+            int end = findMatching(value, i, 0, '}');
             if (end > 0) {
                 char *str = Tcl_substring_(value, i + 1, end);
                 TclValue_append(result, str);
@@ -414,16 +410,12 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                 i = end;
             } else {
                 printf("ERROR: { UNMATCHED\n");
+                return TCL_EXCEPTION;
             }
         } else if (value[i] == '"') {
-            int end = i;
-            while ((end = findMatching(value, end, '"'))) {
-                if (end < 0) break;
-                if (value[end-1] != '\\') break;
-            }
+            int end = findMatching(value, i, 1, '"');
             if (end > 0) {
                 char *str = Tcl_substring_(value, i + 1, end);
-                /* Tcl_unescape_(str); */
 
                 TclValue *eval;
                 TclValue_new(&eval, NULL);
@@ -438,6 +430,7 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                 i = end;
             } else {
                 printf("ERROR: \" UNMATCHED\n");
+                return TCL_EXCEPTION;
             }
         } else {
             char tmp[2];

@@ -1,4 +1,4 @@
-SAN_FLAGS += #-fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls #-fsanitize-memory-track-origins=2
+SAN_FLAGS += -fsanitize=address,undefined -fno-omit-frame-pointer -fno-optimize-sibling-calls #-fsanitize-memory-track-origins=2
 
 EXTRA_CFLAGS=-O0 -g -Wall $(SAN_FLAGS)
 EXTRA_LDFLAGS=$(SAN_FLAGS)
