@@ -421,7 +421,7 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                     if (TclValue_null(result)) {
                         TclValue_replace(result, eval);
                     } else {
-                        TclValue_append(result, TclValue_str_esc(eval));
+                        TclValue_append(result, TclValue_str(eval));
                     }
                 }
                 TclValue_delete(eval);

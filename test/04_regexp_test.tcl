@@ -1,15 +1,17 @@
-test "re dot" { assert {[regexp {2..} {1234}] == 234} }
+test "re dot" {
+    assert {[eql [regexp {2..} {1234}] 234]}
+}
 test "re quantifier+" {
-    assert {[regexp {1+} {211134}] == 111}
+    assert {[eql [regexp {1+} {211134}] 111]}
 }
 test "re quantifier*" {
-    assert {[regexp {1*} {11234}] == 11}
+    assert {[eql [regexp {1*} {11234}] 11]}
 }
 test "re quantifier* (zero)" {
-    assert {[regexp {1*} {234}] == ""}
+    assert {[eql [regexp {1*} {234}] ""]}
 }
 
 # proper string testing is waiting for string equality...
 test "re str" {
-    assert {[regexp {...} {abcd}] == "abc" }
+    assert {[eql [regexp {...} {abcd}] "abc"]}
 }

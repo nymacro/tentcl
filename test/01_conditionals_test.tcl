@@ -14,8 +14,8 @@ test "if_elseif" {
     }
 }
 
-pending "if_str"   { if {"abc" == "abc"} {} {fail} }
-pending "if_str!"  { if {"abc" == "cba"} {fail} {} }
+# pending "if_str"   { if {"abc" == "abc"} {} {fail} }
+# pending "if_str!"  { if {"abc" == "cba"} {fail} {} }
 
 test "if#" {
     if# 1 {} {fail}

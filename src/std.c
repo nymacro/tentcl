@@ -185,6 +185,26 @@ TclReturn TclStd_apply(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return status;
 }
 
+TclReturn TclStd_applyv(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 3) {
+        return TCL_BADCMD;
+    }
+
+    TclValue *v = Tcl_getVariable(vm, TclValue_str(argv[2]));
+    if (!v) return TCL_EXCEPTION;
+    int nargs = TclValue_list_size(v) + 2;
+
+    TclValue **vargs = (TclValue**)malloc(sizeof(TclValue*) * nargs);
+    TclValue_new(&vargs[0], "apply");
+    TclValue_new_ref(&vargs[1], argv[1]);
+    for (unsigned int i = 2; i < nargs; i++) {
+        TclValue_new_ref(&vargs[i], TclValue_list_elt(v, i-1));
+    }
+
+    return TclStd_apply(vm, nargs, vargs, ret);
+}
+
+
 /*tcl: puts ?-nonewline? ?fileid? ?output?
  * Outputs output to the standard output stream. If -nonewline is specified
  * the cursor will stay on the same line. If fileid is specified it will
@@ -1019,6 +1039,8 @@ void TclStd_register(Tcl *vm) {
     Tcl_register(vm, "when#", TclStd_when);
 
     Tcl_register(vm, "apply", TclStd_apply);
+    Tcl_register(vm, "applyv", TclStd_applyv);
+
     Tcl_register(vm, "puts", TclStd_puts);
     Tcl_register(vm, "set", TclStd_set);
     Tcl_register(vm, "unset", TclStd_unset);

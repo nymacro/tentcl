@@ -446,22 +446,41 @@ TclReturn TclExt_expand(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
     TclReturn status;
     TclValue *r = NULL;
-    TclValue_coerce(ret, TCL_VALUE_LIST);
+    TclValue *list;
+    TclValue_new_list(&list);
 
     for (int i = 1; i < argc; i++) {
         TclValue_new(&r, NULL);
         status = Tcl_expand(vm, TclValue_str(argv[i]), r);
         if (status != TCL_OK)
             break;
-        TclValue_list_push(ret, r);
+        TclValue_list_push(list, r);
         TclValue_delete(r);
         r = NULL;
     }
 
-    if (r)
-        TclValue_delete(r);
+    TclValue_replace(ret, list);
+    if (r) TclValue_delete(r);
 
     return status;
+}
+
+TclReturn TclExt_escape(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc < 2) {
+        return TCL_BADCMD;
+    }
+
+    TclValue *list;
+    TclValue_new_list(&list);
+
+    for (unsigned int i = 1; i < argc; i++) {
+        TclValue *r;
+        TclValue_new(&r, TclValue_str_esc(argv[i]));
+        TclValue_list_push(list, r);
+        TclValue_delete(r);
+    }
+    TclValue_replace(ret, list);
+    return TCL_OK;
 }
 
 typedef void (*TclLibraryRegister)(Tcl *vm);
@@ -535,6 +554,7 @@ void TclExt_register(Tcl *vm) {
 
     /* For debugging */
     Tcl_register(vm, "expand", TclExt_expand);
+    Tcl_register(vm, "escape", TclExt_escape);
 
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;

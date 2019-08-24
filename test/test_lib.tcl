@@ -1,6 +1,3 @@
-# use better expr
-# source lib/expr.tcl
-
 set tests_pass 0
 set tests_fail 0
 set tests_pending 0
@@ -49,12 +46,11 @@ proc pending {test_name test_body} {
 
 proc assert {condition} {
     uplevel 1 {
-        # puts $condition
         if $condition {
             noop
         } else {
             puts "    failed condition $condition"
-            # repl
+            repl
             fail
         }
     }
@@ -62,7 +58,7 @@ proc assert {condition} {
 
 proc assert_error {error block} {
     set err [catch $block ret]
-    assert "$err == $error"
+    assert {$err == $error}
 }
 
 proc fail {args} {
@@ -71,14 +67,4 @@ proc fail {args} {
     } else {
         throw
     }
-}
-
-proc run {} {
-    set test_files [glob "test/0*_*.tcl"]
-    foreach test $test_files {
-        puts "$test"
-        set err [catch { source $test } ret]
-        if {$err != 0} { puts stderr "  ERROR running $test ($ret)" }
-    }
-    puts "[llength $test_files] suites"
 }

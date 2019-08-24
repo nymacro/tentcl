@@ -25,7 +25,7 @@ LIBS = libtcl.a dstructs/libdstructs.a mathexpr/libmathexpr.a lineread/liblinere
 all: dstructs mathexpr lineread tclsh #bindings_build
 
 test: tclsh ctest
-	./tclsh -Itest/test.tcl test/*_test.tcl
+	./tclsh test.tcl
 
 ctest: $(LIBS)
 	$(MAKE) EXTRA_CFLAGS="$(EXTRA_CFLAGS)" EXTRA_LDFLAGS="$(EXTRA_LDFLAGS)" -C ctest all test
