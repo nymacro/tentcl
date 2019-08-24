@@ -1,12 +1,3 @@
-test "string-escape" {
-    assert {[eql "\"a b c\"" {"a b c"}] == 1}
-    assert {[eql a\ b\ c "a b c"] == 1}
-    assert {[eql "\\\"a b c\\\""  {\"a b c\"}] == 1}
-    assert {[eql "abc\" cd" {abc" cd}] == 1}
-    assert {[eql "hello \"world\" :)" "hello \"world\" :)"] == 1}
-    assert {[eql "\\\\" \\\\] == 1}
-}
-
 test "apply" {
     apply set {i 100}
     assert "$i == 100"
@@ -46,7 +37,7 @@ test "label_goto" {
             goto l
         }
     }
-    assert "$count == 0"
+    assert {$count == 0}
 }
 
 test "label_leave" {
@@ -75,4 +66,13 @@ test "label_nested" {
 test "label_scope" {
     label l1 { noop }
     assert_error 4 { goto l1 }
+}
+
+test "string-escape" {
+    assert {[eql "\"a b c\"" {"a b c"}] == 1}
+    assert {[eql a\ b\ c "a b c"] == 1}
+    assert {[eql "\\\"a b c\\\""  {\"a b c\"}] == 1}
+    assert {[eql "abc\" cd" {abc" cd}] == 1}
+    assert {[eql "hello \"world\" :)" "hello \"world\" :)"] == 1}
+    assert {[eql "\\\\" \\\\] == 1}
 }

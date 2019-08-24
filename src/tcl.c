@@ -13,6 +13,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <stdarg.h>
 
 #include "tcl.h"
 
@@ -251,17 +252,21 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
     int i;
     for (i = 0; i < List_size(list); i++) {
         status = Tcl_evalExpression(vm, List_index(list, i)->data, ret);
-        // exception
-        if (status != TCL_OK && status != TCL_RETURN) {
-            if (status == TCL_EXIT)
-                break;
-            if (status == TCL_BREAK)
-                break;
+        switch (status) {
+        case TCL_OK:
+            break;
+        case TCL_RETURN:
+        case TCL_EXIT:
+        case TCL_BREAK:
+            goto break_;
+        default:
             /* fprintf(stderr, "%s from: %s\n", Tcl_returnString(status), (char*)List_index(list, i)->data); */
             /* TclValue_set(ret, (char*)List_index(list, i)->data); */
-            break;
+            /* Tcl_funcallv(vm, ret, "repl", 0); */
+            goto break_;
         }
     }
+break_:
 
     List_free(list);
     return status;
@@ -271,7 +276,7 @@ TclReturn Tcl_eval(Tcl *vm, char *expression, TclValue *ret) {
  * Call Tcl command.
  * @param ret must be freed if set
  */
-TclReturn Tcl_funcall(Tcl *vm, char *function, int argc, TclValue *argv[], TclValue *ret) {
+TclReturn Tcl_funcall(Tcl *vm, char *function, unsigned int argc, TclValue *argv[], TclValue *ret) {
     TclValue *fun = Tcl_getFunction(vm, function);
     if (!fun) {
         return TCL_BADCMD;
@@ -280,6 +285,28 @@ TclReturn Tcl_funcall(Tcl *vm, char *function, int argc, TclValue *argv[], TclVa
     } else {
         return ((TclFunction)TclValue_fun(fun))(vm, argc, argv, ret);
     }
+}
+
+TclReturn Tcl_funcallv(Tcl *vm, TclValue *ret, char *function, unsigned int argc, ...) {
+    TclReturn status;
+
+    va_list valist;
+    TclValue **args = malloc(sizeof(TclValue*)*(argc+1));
+    TclValue_new(&args[0], function);
+
+    va_start(valist, argc);
+    for (unsigned int i = 1; i < argc+1; i++) {
+        args[i] = va_arg(valist, TclValue*);
+    }
+    va_end(valist);
+
+    /* call */
+    status = Tcl_funcall(vm, function, argc+1, args, ret);
+
+    TclValue_delete(args[0]);
+    free(args);
+
+    return status;
 }
 
 /* findMatching

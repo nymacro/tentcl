@@ -244,16 +244,18 @@ void TclValue_list_push_str(TclValue *value, char *str) {
 }
 
 int TclValue_list_size(TclValue *value) {
-    if (TclValue_type(value) != TCL_VALUE_LIST)
-        return -1; /* oops? */
+    TclValue_coerce(value, TCL_VALUE_LIST);
+    /* if (TclValue_type(value) != TCL_VALUE_LIST) */
+    /*     return -1; /\* oops? *\/ */
 
     List *list = (List*)TclValue_ptr(value);
     return List_size(list);
 }
 
 TclValue *TclValue_list_elt(TclValue *value, int idx) {
-    if (TclValue_type(value) != TCL_VALUE_LIST)
-        return NULL; /* oops? */
+    TclValue_coerce(value, TCL_VALUE_LIST);
+    /* if (TclValue_type(value) != TCL_VALUE_LIST) */
+    /*     return NULL; /\* oops? *\/ */
 
     List *list = (List*)TclValue_ptr(value);
     unsigned int size = List_size(list);
@@ -309,7 +311,7 @@ int TclValue_list_join_(TclValue *value, char *buf, unsigned int buf_len) {
 
     for (unsigned int i = 0; i < size; i++) {
         if (buf_len == 0)
-            break;
+            return -1;
         char *s = (i == size-1) ? "" : " ";
         unsigned int t = snprintf(buf, buf_len, "%s%s",
                                   TclValue_str_esc(List_index(list, i)->data),
@@ -390,7 +392,10 @@ void *TclValue_ptr(TclValue *v) {
 
 char *TclValue_str_(TclValue *v) {
     static char empty[] = "";
-    static char int_buf[1024]; /* not thread safe */
+    static unsigned char int_buf_idx = 0;
+    static char int_buf_ary[32][1024]; /* not thread safe */
+    int_buf_idx = (int_buf_idx + 1) % 32;
+    char *int_buf = &int_buf_ary[int_buf_idx];
 
     switch (TclValue_type(v)) {
     case TCL_VALUE_INT:
@@ -406,7 +411,9 @@ char *TclValue_str_(TclValue *v) {
         snprintf(int_buf, sizeof(int_buf) - 1, "<FUNCTION %p>", TclValue_fun(v));
         return int_buf;
     case TCL_VALUE_LIST:
-        TclValue_list_join_(v, int_buf, sizeof(int_buf));
+        if (TclValue_list_join_(v, int_buf, sizeof(int_buf_ary[0])) < 0) {
+            abort();
+        }
         return int_buf;
     default:
         return empty;

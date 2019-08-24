@@ -198,5 +198,7 @@ TclReturn TclRepl_repl(Tcl *vm, FILE *input) {
     LineRead *reader = TclRepl_readerMalloc(vm);
     TclReturn status = TclRepl_repl_(vm, input, reader);
     LineRead_free(reader);
+
+    status = TCL_OK;
     return status;
 }

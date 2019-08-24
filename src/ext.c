@@ -236,6 +236,17 @@ TclReturn TclStd_and(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
+/*tcl: not expr
+ * Logical not
+ */
+TclReturn TclStd_not(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    if (argc != 2) {
+        return TCL_BADCMD;
+    }
+    TclValue_set_int(ret, !TclValue_int(argv[1]));
+    return TCL_OK;
+}
+
 /*tcl: range num num
  * Return a range of number in a list.
  */
@@ -429,11 +440,28 @@ TclReturn TclStd_length(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 }
 
 TclReturn TclExt_expand(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    if (argc != 2) {
+    if (argc < 2) {
         return TCL_BADCMD;
     }
 
-    return Tcl_expand(vm, TclValue_str(argv[1]), ret);
+    TclReturn status;
+    TclValue *r = NULL;
+    TclValue_coerce(ret, TCL_VALUE_LIST);
+
+    for (int i = 1; i < argc; i++) {
+        TclValue_new(&r, NULL);
+        status = Tcl_expand(vm, TclValue_str(argv[i]), r);
+        if (status != TCL_OK)
+            break;
+        TclValue_list_push(ret, r);
+        TclValue_delete(r);
+        r = NULL;
+    }
+
+    if (r)
+        TclValue_delete(r);
+
+    return status;
 }
 
 typedef void (*TclLibraryRegister)(Tcl *vm);
@@ -489,6 +517,7 @@ void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "lt", TclStd_lt);
     Tcl_register(vm, "or", TclStd_or);
     Tcl_register(vm, "and", TclStd_and);
+    Tcl_register(vm, "not", TclStd_not);
     Tcl_register(vm, "range", TclStd_range);
     Tcl_register(vm, "use", TclStd_use);
 

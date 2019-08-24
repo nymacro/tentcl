@@ -1,3 +1,6 @@
+# use better expr
+source lib/expr.tcl
+
 set tests_pass 0
 set tests_fail 0
 set tests_pending 0
@@ -46,11 +49,12 @@ proc pending {test_name test_body} {
 
 proc assert {condition} {
     uplevel 1 {
+        # puts $condition
         if $condition {
             noop
         } else {
             puts "    failed condition $condition"
-            repl
+            # repl
             fail
         }
     }

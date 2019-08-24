@@ -43,11 +43,22 @@ int main(int argc, char *argv[]) {
     test_assert(strcmp(r->container->value, "a") == 0);
     TclValue_delete(r);
 
+    /* shift test */
+    TclValue *list2;
+    TclValue_new_list(&list2);
+    TclValue_list_push(list2, s2);
+    TclValue_list_push(list2, s3);
+
+    r = TclValue_list_shift(list2);
+    test_assert(r->container == s2->container);
+    TclValue_delete(r);
+
     /* cleanup */
     TclValue_delete(s3);
     TclValue_delete(s2);
     TclValue_delete(s1);
 
+    TclValue_delete(list2);
     TclValue_delete(list);
     return 0;
 }
