@@ -4,26 +4,29 @@
 
 # convert infix to prefix notation
 proc infix {args} {
+    proc f {x} {
+        when# [eql "" $x] { return {""} }
+        return $x
+    }
     set len [llength $args]
+    # puts "> $len"
+
     when# {$len < 1} {
-        return ""
+        return {""}
     }
     when# {$len == 1} {
-        return "const $args"
+        return "const [f $args]"
     }
     when# {$len == 2} {
-        return "[lindex $args 0] [lindex $args 1]"
+        return "[f [lindex $args 0]] [f [lindex $args 1]]"
     }
     when# {$len == 3} {
-        return "[lindex $args 1] [lindex $args 0] [lindex $args 2]"
+        return "[f [lindex $args 1]] [f [lindex $args 0]] [f [lindex $args 2]]"
     }
     when# {$len > 3} {
-        set x "[lindex $args 1] [lindex $args 0]"
-        puts $args
+        set x "[f [lindex $args 1]] [f [lindex $args 0]]"
         drop 2 args
-        # return "$x \[[apply infix $args] $b\]"
-        puts $args
-        return "$x \[[apply infix $args]\]"
+        return "[f $x] \[[apply infix $args]\]"
     }
 
     throw "bad len: $len"
@@ -42,19 +45,21 @@ proc expr {args} {
     proc >= {a b} {or [gt $a $b] [eql $a $b]}
     proc <= {a b} {or [lt $a $b] [eql $a $b]}
 
+    # puts [length args]
     set args2 [uplevel { apply expand $args }]
+    # puts [length args2]
     # puts $args2
     set e [apply infix $args2]
     # puts $e
     eval $e
 }
 
-puts [expr {2 * 100 + 100}]
+# puts [expr {2 * 100 + 100}]
 
-set hi hi
-if {$hi == "hi"} {
-    puts {hi == hi}
-}
-if {"hi" == "hii"} {
-    puts {NOOOO hi != hii}
-}
+# set hi hi
+# if {$hi == "hi"} {
+#     puts {hi == hi}
+# }
+# if {"hi" == "hii"} {
+#     puts {NOOOO hi != hii}
+# }

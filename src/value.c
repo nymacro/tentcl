@@ -12,6 +12,8 @@
 
 #include "common.h"
 
+char *TclValue_str_unesc(TclValue *v);
+
 static void TclValue_free_value_(TclValue *value) {
     List *list;
     TclValueObject *obj;
@@ -361,7 +363,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
         TclValue_new_list(&list);
 
         List *elms = List_malloc();
-        Tcl_split(NULL, TclValue_str(v), " \t", elms);
+        Tcl_split(NULL, TclValue_str_unesc(v), " \t", elms);
 
         for (unsigned int i = 0; i < List_size(elms); i++) {
             TclValue_list_push_str(list, List_index(elms, i)->data);
@@ -376,7 +378,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
     } else
     /* any -> str */
     if (new_type == TCL_VALUE_STR) {
-        str_val = strdup(TclValue_str_(v));
+        str_val = strdup(TclValue_str(v));
         TclValue_free_value_(v);
         v->container->value = str_val;
     }
@@ -425,6 +427,31 @@ char *TclValue_str(TclValue *v) {
     return TclValue_str_(v);
 }
 
+char *TclValue_str_unesc(TclValue *v) {
+    static char buf[1024]; /* having a real GC would be wonderful */
+    size_t buf_len = sizeof(buf) - 1;
+    char *str = TclValue_str_(v);
+    size_t str_len = strlen(str);
+
+    /* unescape any space characters */
+    size_t i = 0, b = 0;
+    for (; i < str_len; i++) {
+        if (i > buf_len) { abort(); }
+
+        if (str[i] == '\\') {
+            continue;
+        }
+
+        if (i > buf_len) { abort(); }
+
+        buf[b++] = str[i];
+    }
+
+    buf[b] = '\0';
+
+    return buf;
+}
+
 char *TclValue_str_esc(TclValue *v) {
     static char buf[1024]; /* having a real GC would be wonderful */
     size_t buf_len = sizeof(buf) - 1;
@@ -436,7 +463,7 @@ char *TclValue_str_esc(TclValue *v) {
     for (; i < str_len; i++) {
         if (i > buf_len) { abort(); }
 
-        if (isspace(str[i])) {
+        if (isspace(str[i]) || str[i] == '\\') {
             buf[b++] = '\\';
         }
 

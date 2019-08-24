@@ -16,10 +16,10 @@ proc fact {n} {
     if {$n < 2} {
         return $n
     } else {
-        return [expr [fact [incr $n -1]] * $n]
+        return [expr [fact [expr $n - 1]] * $n]
     }
 }
 test "proc_recursion" {
     set f [fact 5]
-    assert "$f == 120"
+    assert {$f == 120}
 }

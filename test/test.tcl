@@ -1,5 +1,5 @@
 # use better expr
-source lib/expr.tcl
+# source lib/expr.tcl
 
 set tests_pass 0
 set tests_fail 0
@@ -7,15 +7,15 @@ set tests_pending 0
 
 proc incr_fail {} {
     upvar 0 tests_fail tests_fail
-    set tests_fail [incr $tests_fail]
+    set tests_fail [incr tests_fail]
 }
 proc incr_pass {} {
     upvar 0 tests_pass tests_pass
-    set tests_pass [incr $tests_pass]
+    set tests_pass [incr tests_pass]
 }
 proc incr_pending {} {
     upvar 0 tests_pending tests_pending
-    set tests_pending [incr $tests_pending]
+    set tests_pending [incr tests_pending]
 }
 
 proc eval_catch {test_body} {

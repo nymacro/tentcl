@@ -1,23 +1,23 @@
 test "apply" {
     apply set {i 100}
-    assert "$i == 100"
+    assert {$i == 100}
 }
 
 test "catch" {
     set err [catch {exit 0} ret]
-    assert "$err == 5" ;# have to use double quotes to interpolate at this level
-    assert "$ret == 0" ;# due to assert not upvar'ing
+    assert {$err == 5} ;# have to use double quotes to interpolate at this level
+    assert {$ret == 0} ;# due to assert not upvar'ing
 }
 test "catch2" {
     set err [catch {exit 1} ret]
-    assert "$err == 5"
-    assert "$ret == 1"
+    assert {$err == 5}
+    assert {$ret == 1}
 }
 
 set upvar_test_var 100
 test "upvar" {
     upvar upvar_test_var v
-    assert "$v == 100"
+    assert {$v == 100}
 
     set i 100
     proc my_set {name value} {
@@ -25,14 +25,14 @@ test "upvar" {
         set v $value
     }
     my_set i 200
-    assert "$i == 200"
+    assert {$i == 200}
 }
 
 test "label_goto" {
     set count 3
 
     label l {
-        set count [incr $count -1]
+        incr count -1
         if {$count > 0} {
             goto l
         }
@@ -46,7 +46,7 @@ test "label_leave" {
         leave l
         set fail 1
     }
-    assert "$fail == 0"
+    assert {$fail == 0}
 }
 
 test "label_nested" {
@@ -60,7 +60,7 @@ test "label_nested" {
             goto l1
         }
     }
-    assert "$done == 1"
+    assert {$done == 1}
 }
 
 test "label_scope" {

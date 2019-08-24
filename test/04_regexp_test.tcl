@@ -10,4 +10,6 @@ test "re quantifier* (zero)" {
 }
 
 # proper string testing is waiting for string equality...
-pending "re str" { regexp {...} {abcd} }
+test "re str" {
+    assert {[regexp {...} {abcd}] == "abc" }
+}

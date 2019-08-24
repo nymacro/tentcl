@@ -217,6 +217,8 @@ TclReturn Tcl_evalExpression(Tcl *vm, char *expression, TclValue *ret) {
         if (status != TCL_OK) {
             goto fail;
         }
+
+        /* printf("  %i : %s\n", i, TclValue_str(argv[i])); */
     }
 
     /* call the function */
@@ -397,7 +399,10 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                     free(key);
                     j = end + 1;
                 } else {
-                    TclValue_append(result, v);
+                    /* if (TclValue_null(result)) { */
+                    /*     TclValue_replace(result, var); */
+                    /* } else */
+                        TclValue_append(result, v);
                 }
             } else {
                 printf("can't read \"%s\": no such variable\n", name);
@@ -416,7 +421,7 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                     if (TclValue_null(result)) {
                         TclValue_replace(result, eval);
                     } else {
-                        TclValue_append(result, TclValue_str(eval));
+                        TclValue_append(result, TclValue_str_esc(eval));
                     }
                 }
                 TclValue_delete(eval);

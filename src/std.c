@@ -71,20 +71,26 @@ TclReturn TclStd_userFuncall(Tcl *vm, int argc, TclValue *argv[], TclValue *ret)
     Tcl_pushNamespace(vm);
 
     for (i = 0; i < List_size(f->args) - var_args; i++) {
-        HashPair *p = Hash_get(vm->variables, List_index(f->args, i)->data);
-        TclValue_new((TclValue**)&p->data, TclValue_str(argv[i + 1]));
+        /* printf("%s = %s\n", */
+        /*        (char*)List_index(f->args, i)->data, */
+        /*        TclValue_str(argv[i+1])); */
+        TclValue *v;
+        /* TclValue_new(&v, TclValue_str(argv[i+1])); */
+        TclValue_new_ref(&v, argv[i+1]);
+        Tcl_addVariable_(vm, (char*)List_index(f->args, i)->data, v);
     }
 
     /* combine rest of arguments */
     if (var_args && i < List_size(f->args)) {
-        HashPair *p = Hash_get(vm->variables, List_index(f->args, i)->data);
-        TclValue **v = (TclValue**)&p->data;
-        TclValue_new(v, NULL);
-
+        TclValue *v;
+        TclValue_new_list(&v);
         for (; i < argc - 1; i++) {
-            TclValue_append(*v, TclValue_str(argv[i + 1]));
-            TclValue_append(*v, " ");
+            TclValue *r;
+            /* TclValue_new(&r, TclValue_str(argv[i+1])); */
+            TclValue_new_ref(&r, argv[i+1]);
+            TclValue_list_push(v, r);
         }
+        Tcl_addVariable_(vm, "args", v);
     }
 
     status = Tcl_eval(vm, TclValue_str(f->code), ret);
@@ -158,27 +164,24 @@ TclReturn TclStd_apply(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
     TclReturn status;
     char *function = TclValue_str(argv[1]);
-    List *args = List_malloc();
-    Tcl_split(vm, TclValue_str(argv[2]), " \t\n", args); /* dirty */
-    int nargs = List_size(args) + 1;
+
+    TclValue_coerce(argv[2], TCL_VALUE_LIST);
+    int nargs = TclValue_list_size(argv[2])+1;
 
     TclValue **vargs = (TclValue**)malloc(sizeof(TclValue*) * nargs);
     memset(vargs, 0, sizeof(TclValue*) * nargs);
 
     TclValue_new_ref(&vargs[0], argv[1]);
-    for (int i = 0; i < nargs-1; i++) {
-        TclValue_new(&vargs[i+1], NULL);
-        status = Tcl_expand(vm, List_index(args, i)->data, vargs[i+1]);
-        if (status != TCL_OK)
-            goto fail;
+    for (int i = 1; i < nargs; i++) {
+        TclValue_new_ref(&vargs[i], TclValue_list_elt(argv[2], i-1));
     }
 
     status = Tcl_funcall(vm, function, nargs, vargs, ret);
 
-fail:
-    TclValue_delete(vargs[0]);
+    for (int i = 0; i < nargs; i++)
+        TclValue_delete(vargs[i]);
+
     free(vargs);
-    List_free(args);
     return status;
 }
 
@@ -390,15 +393,13 @@ TclReturn TclStd_if(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
                 goto done;
             }
         }
-        TclValue_set_null(ret);
     }
 done:
     TclValue_delete(result);
     return status;
 }
 
-/*tcl: incr value ?amount?
- * TODO: Fix this function. Should be 'incr varname ?amount?'
+/*tcl: incr varname ?amount?
  * Increments the value by amount and returns it. If amount is not specified
  * the default value of 1 will be used.
  */
@@ -410,11 +411,14 @@ TclReturn TclStd_incr(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     if (argc > 2) {
         amount = TclValue_int(argv[2]);
     }
-    int val = TclValue_int(argv[1]) + amount;
-    char tmp[64];
-    snprintf(tmp, 64, "%i", val);
-    TclValue_set(ret, tmp);
-
+    TclValue *var = Tcl_getVariable(vm, TclValue_str(argv[1]));
+    if (var) {
+        int val = TclValue_int(var) + amount;
+        TclValue_set_int(var, val);
+        TclValue_set_int(ret, val);
+    } else {
+        return TCL_EXCEPTION;
+    }
     return TCL_OK;
 }
 
