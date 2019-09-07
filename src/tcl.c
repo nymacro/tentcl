@@ -568,23 +568,26 @@ int Tcl_split(Tcl *vm, char *value, char *delims, List *result) {
 /* Tcl_register
  * Register new Tcl command in the interpreter.
  */
-void Tcl_register(Tcl *vm, char *name, TclFunction function) {
+TclValue *Tcl_register(Tcl *vm, char *name, TclFunction function) {
     TclValue *val = NULL;
     TclValue_new_function(&val, (TclFunction_)function);
     Tcl_addVariable_(vm, name, val);
+    return val;
 }
 
 /* Tcl_addVariable
  * Add variable to Tcl VM.
  */
-void Tcl_addVariable(Tcl *self, char *name, char *value) {
+TclValue *Tcl_addVariable(Tcl *self, char *name, char *value) {
     TclValue *val = NULL;
     TclValue_new(&val, value);
     Hash_get(self->variables, name)->data = val;
+    return val;
 }
 
-void Tcl_addVariable_(Tcl *self, char *name, TclValue *val) {
+TclValue *Tcl_addVariable_(Tcl *self, char *name, TclValue *val) {
     Hash_get(self->variables, name)->data = val;
+    return val;
 }
 
 /* Tcl_getVariable

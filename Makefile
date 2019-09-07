@@ -14,7 +14,7 @@ CFLAGS = -Idstructs/src -Imathexpr/src -Ilineread/src \
 
 OBJECT = src/value.o \
          src/tcl.o src/std.o src/repl.o src/ext.o src/regexp.o \
-	 src/record.o src/io.o
+	 src/io.o
 
 TCLSH_OBJS = src/tclsh.o
 

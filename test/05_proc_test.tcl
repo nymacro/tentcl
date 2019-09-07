@@ -23,3 +23,9 @@ test "proc_recursion" {
     set f [fact 5]
     assert {$f == 120}
 }
+
+test "proc_value" {
+    set f [proc _ {} {return "hi"}]
+    # calling _ works, but calling f segfaults
+    f
+}

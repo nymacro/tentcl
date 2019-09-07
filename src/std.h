@@ -13,8 +13,6 @@ struct TclUserFunction {
 };
 typedef struct TclUserFunction TclUserFunction;
 
-extern Hash *functions;
-
 void TclStd_register(Tcl*);
 
 TclReturn TclStd_userFuncall(Tcl*, int, TclValue*[], TclValue*);

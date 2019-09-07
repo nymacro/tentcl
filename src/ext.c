@@ -15,7 +15,7 @@
 
 #include "common.h"
 
-static List lambdas;
+/* static List lambdas; */
 static List dlls;
 
 // THIS FUNCTION CONFLICTS WITH STANDARD TCL COMMAND
@@ -37,31 +37,31 @@ TclReturn TclStd_info(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  * Returns an anonymous function. Used like proc except with name argument
  * left out.
  */
-TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    static int count = 0; // unique id returned for lambda
-    if (argc != 3) {
-        return TCL_BADCMD;
-    }
+/* TclReturn TclStd_lambda(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) { */
+/*     static int count = 0; // unique id returned for lambda */
+/*     if (argc != 3) { */
+/*         return TCL_BADCMD; */
+/*     } */
 
-    char lambdaName[256];
-    snprintf(lambdaName, sizeof(lambdaName), "__lambda_%i", count);
-    count++;
+/*     char lambdaName[256]; */
+/*     snprintf(lambdaName, sizeof(lambdaName), "__lambda_%i", count); */
+/*     count++; */
 
-    TclUserFunction *f = (TclUserFunction*)malloc(sizeof(TclUserFunction));
-    f->args = List_malloc();
-    Tcl_split(vm, TclValue_str(argv[1]), " \t\n", f->args);
+/*     TclUserFunction *f = (TclUserFunction*)malloc(sizeof(TclUserFunction)); */
+/*     f->args = List_malloc(); */
+/*     Tcl_split(vm, TclValue_str(argv[1]), " \t\n", f->args); */
 
-    TclValue_new(&f->code, TclValue_str(argv[2]));
-    Hash_get(functions, lambdaName)->data = f;
+/*     TclValue_new(&f->code, TclValue_str(argv[2])); */
+/*     Hash_get(functions, lambdaName)->data = f; */
 
-    Tcl_register(vm, lambdaName, TclStd_userFuncall);
+/*     Tcl_register(vm, lambdaName, TclStd_userFuncall); */
 
-    TclValue_set(ret, lambdaName);
+/*     TclValue_set(ret, lambdaName); */
 
-    List_push(&lambdas, f);
+/*     List_push(&lambdas, f); */
 
-    return TCL_OK;
-}
+/*     return TCL_OK; */
+/* } */
 
 /*tcl: add num ?num ...?
  * Returns the sum of all arguments
@@ -514,19 +514,19 @@ static void dllsDealloc(ListNode *node) {
 #endif
 }
 
-static void lambdasDealloc(ListNode *node) {
-    TclUserFunction *f = (TclUserFunction*)node->data;
-    List_delete(f->args);
-}
+/* static void lambdasDealloc(ListNode *node) { */
+/*     TclUserFunction *f = (TclUserFunction*)node->data; */
+/*     List_delete(f->args); */
+/* } */
 
 void TclExt_cleanup(void) {
     List_delete(&dlls);
-    List_delete(&lambdas);
+    /* List_delete(&lambdas); */
 }
 
 void TclExt_register(Tcl *vm) {
     Tcl_register(vm, "info", TclStd_info);
-    Tcl_register(vm, "lambda", TclStd_lambda);
+    /* Tcl_register(vm, "lambda", TclStd_lambda); */
     Tcl_register(vm, "add", TclStd_add);
     Tcl_register(vm, "sub", TclStd_sub);
     Tcl_register(vm, "div", TclStd_div);
@@ -559,8 +559,8 @@ void TclExt_register(Tcl *vm) {
     List_new(&dlls);
     dlls.dealloc = dllsDealloc;
 
-    List_new(&lambdas);
-    lambdas.dealloc = lambdasDealloc;
+    /* List_new(&lambdas); */
+    /* lambdas.dealloc = lambdasDealloc; */
 
     atexit(TclExt_cleanup);
 }

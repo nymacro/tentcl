@@ -21,8 +21,7 @@
 
 #include "common.h"
 
-static Hash *files;
-Hash *functions;
+static Hash *functions;
 
 extern void string_dealloc(ListNode *node);
 
@@ -205,43 +204,6 @@ TclReturn TclStd_applyv(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 }
 
 
-/*tcl: puts ?-nonewline? ?fileid? ?output?
- * Outputs output to the standard output stream. If -nonewline is specified
- * the cursor will stay on the same line. If fileid is specified it will
- * output to the appropriate file.
- */
-TclReturn TclStd_puts(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    int nonewline = 0;
-    int i = 1;
-    FILE *fp = stdout;
-
-    if (argc > 4) {
-        return TCL_BADCMD;
-    }
-
-    if (argc > 1 && strcmp(TclValue_str(argv[1]), "-nonewline") == 0) {
-        nonewline = 1;
-        i++;
-    }
-
-    if (argc - nonewline > 2) {
-        HashPair *p = Hash_get(files, TclValue_str(argv[i]));
-        if (!p->data) {
-            fprintf(stderr, "Stream '%s' does not exist\n", TclValue_str(argv[i]));
-            return TCL_EXCEPTION;
-        }
-        fp = (FILE*)p->data;
-        fputs(TclValue_str(argv[++i]), fp);
-    } else if (argc - nonewline == 2) {
-        fputs(TclValue_str(argv[i]), fp);
-    }
-
-    if (!nonewline)
-        fputc('\n', fp);
-
-    return TCL_OK;
-}
-
 /*tcl: set varName ?value?
  * Set the variable named varName to value. If value is not provided the
  * existing value of varName is returned.
@@ -332,7 +294,9 @@ TclReturn TclStd_proc(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     TclValue_new(&f->code, TclValue_str(argv[3]));
     Hash_get(functions, TclValue_str(argv[1]))->data = f;
 
-    Tcl_register(vm, TclValue_str(argv[1]), TclStd_userFuncall);
+    TclValue *fun = Tcl_register(vm, TclValue_str(argv[1]), TclStd_userFuncall);
+    TclValue_ref(fun);
+    TclValue_replace(ret, fun);
 
     return TCL_OK;
 }
@@ -769,94 +733,6 @@ TclReturn TclStd_pwd(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     return TCL_OK;
 }
 
-/*tcl: close fileid
- * Close the file associated with fileid which was created by the appropriate
- * open call.
- */
-TclReturn TclStd_close(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    if (argc != 2) {
-        return TCL_BADCMD;
-    }
-    FILE *fp;
-    fp = Hash_get(files, TclValue_str(argv[1]))->data;
-    if (!fp) {
-        return TCL_EXCEPTION;
-    } else {
-        fclose(fp);
-        Hash_get(files, TclValue_str(argv[1]))->data = NULL;
-    }
-    Hash_remove(files, Hash_get(files, TclValue_str(argv[1])));
-    return TCL_OK;
-}
-
-/*tcl: open file ?mode?
- * Returns a fileid associated with the file in read-only mode.
- *
- * The following predefined fileid's are available:
- * <ul>
- * <li>stdin - Standard input</li>
- * <li>stdout - Standard output</li>
- * <li>stderr - Standard error</li>
- * </ul>
- */
-TclReturn TclStd_open(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    if (argc < 2 || argc > 3) {
-        return TCL_BADCMD;
-    }
-    FILE *fp = Hash_get(files, TclValue_str(argv[1]))->data;
-    if (fp) {
-        return TCL_EXCEPTION;
-    }
-    fp = fopen(TclValue_str(argv[1]), "r");
-    Hash_get(files, TclValue_str(argv[1]))->data = fp;
-    TclValue_set(ret, TclValue_str(argv[1]));
-    return TCL_OK;
-}
-
-/*tcl: gets fileid ?varname?
- * Read and return a line of content from file associated with fileid. If
- * varname is specified the line is put into the variable varname.
- */
-TclReturn TclStd_gets(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    if (argc < 2 || argc > 3) {
-        return TCL_BADCMD;
-    }
-    FILE *fp = Hash_get(files, TclValue_str(argv[1]))->data;
-    if (!fp) {
-        return TCL_EXCEPTION;
-    }
-    char line[1024];
-    fgets(line, 1023, fp);
-    line[1023] = '\0';
-    if (argc == 3) {
-        TclValue *value = NULL;
-        HashPair *p = Hash_get(vm->variables, TclValue_str(argv[2]));
-        if (!p->data) {
-            TclValue_new(&value, NULL);
-            p->data = value;
-        }
-        TclValue_set(value, line);
-    } else {
-        TclValue_set(ret, line);
-    }
-    return TCL_OK;
-}
-
-/*tcl: flush fileid
- * Flushes output from stream
- */
-TclReturn TclStd_flush(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
-    if (argc < 2) {
-        return TCL_BADCMD;
-    }
-    FILE *fp = Hash_get(files, TclValue_str(argv[1]))->data;
-    if (!fp) {
-        return TCL_EXCEPTION;
-    }
-    fflush(fp);
-    return TCL_OK;
-}
-
 /*tcl: string option arg
  * Perform option on string arg.
  *
@@ -1028,7 +904,6 @@ TclReturn TclStd_uplevel(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 /**********************************************/
 
 void TclStd_cleanup(void) {
-    Hash_free(files);
     Hash_free(functions);
 }
 
@@ -1041,7 +916,6 @@ void TclStd_register(Tcl *vm) {
     Tcl_register(vm, "apply", TclStd_apply);
     Tcl_register(vm, "applyv", TclStd_applyv);
 
-    Tcl_register(vm, "puts", TclStd_puts);
     Tcl_register(vm, "set", TclStd_set);
     Tcl_register(vm, "unset", TclStd_unset);
     Tcl_register(vm, "exit", TclStd_exit);
@@ -1064,23 +938,11 @@ void TclStd_register(Tcl *vm) {
     Tcl_register(vm, "lindex", TclStd_lindex);
     Tcl_register(vm, "cd", TclStd_cd);
     Tcl_register(vm, "pwd", TclStd_pwd);
-    Tcl_register(vm, "open", TclStd_open);
-    Tcl_register(vm, "flush", TclStd_flush);
-    Tcl_register(vm, "close", TclStd_close);
-    Tcl_register(vm, "gets", TclStd_gets);
     Tcl_register(vm, "string", TclStd_string);
     Tcl_register(vm, "glob", TclStd_glob);
     Tcl_register(vm, "catch", TclStd_catch);
     Tcl_register(vm, "upvar", TclStd_upvar);
     Tcl_register(vm, "uplevel", TclStd_uplevel);
-
-    files = Hash_malloc();
-    HashPair *p = Hash_get(files, "stdout");
-    p->data = stdout;
-    p = Hash_get(files, "stdin");
-    p->data = stdin;
-    p = Hash_get(files, "stderr");
-    p->data = stderr;
 
     functions = Hash_malloc();
     functions->tree.dealloc = TclStd_functions_dealloc;
