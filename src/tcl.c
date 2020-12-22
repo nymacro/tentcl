@@ -14,6 +14,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 #include <stdarg.h>
+#include <assert.h>
 
 #include "tcl.h"
 
@@ -123,7 +124,6 @@ static void Tcl_split_alloc(ListNode *node, void *data) {
  *
  */
 static void Tcl_split_dealloc(ListNode *node) {
-    // TclValue_delete((TclValue*)node->data);
     free(node->data);
 }
 
@@ -399,10 +399,7 @@ TclReturn Tcl_expand_(Tcl *vm, char *value, TclValue *result) {
                     free(key);
                     j = end + 1;
                 } else {
-                    /* if (TclValue_null(result)) { */
-                    /*     TclValue_replace(result, var); */
-                    /* } else */
-                        TclValue_append(result, v);
+		    TclValue_append(result, v);
                 }
             } else {
                 printf("can't read \"%s\": no such variable\n", name);

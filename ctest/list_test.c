@@ -9,13 +9,13 @@ void did_fail() {
     return;
 }
 
-#define test_assert(p)                                  \
-    do {                                                \
-        if (!(p)) {                                     \
-            fprintf(stderr, "FAILED " #p "\n");         \
-            did_fail();                                 \
-            exit(1);                                    \
-        }                                               \
+#define test_assert(p)						\
+    do {							\
+        if (!(p)) {						\
+	    fprintf(stderr, "%i:FAILED " #p "\n", __LINE__);	\
+            did_fail();						\
+            exit(1);						\
+        }							\
     } while (0);
 
 int main(int argc, char *argv[]) {
@@ -32,12 +32,22 @@ int main(int argc, char *argv[]) {
 
     TclValue_list_push(list, s2);
     TclValue_list_push(list, s3);
+    test_assert(s3->container->ref == 2);
 
     TclValue *r = TclValue_list_pop(list);
     test_assert(r->container == s3->container);
+    test_assert(s3->container->ref == 2);
     TclValue_delete(r);
 
+    TclValue *old_s1;
+    TclValue_new_ref(&old_s1, s1);
+    test_assert(s1->container->ref == 3);
+
     TclValue_coerce(s1, TCL_VALUE_LIST);
+    test_assert(s1->container->ref == 1);
+    test_assert(old_s1->container->ref == 2);
+    TclValue_delete(old_s1);
+
     r = TclValue_list_pop(s1);
     test_assert(TclValue_type(r) == TCL_VALUE_STR);
     test_assert(strcmp(r->container->value, "a") == 0);

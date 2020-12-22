@@ -29,13 +29,12 @@ void TclStd_files_dealloc(HashPair *pair) {
     fclose(pair->data);
 }
 
-void TclStd_functions_dealloc(BTreeNode *node) {
-    /* FIXME: for some reason -- args is getting screwed... */
-    if (node->data) {
-        TclUserFunction *fn = (TclUserFunction*)node->data;
-        /*List_free(fn->args);*/
+void TclStd_functions_dealloc(HashPair *pair) {
+    if (pair->data) {
+        TclUserFunction *fn = (TclUserFunction*)pair->data;
+        List_free(fn->args);
         TclValue_delete(fn->code);
-        free(node->data);
+        free(pair->data);
     }
 }
 
@@ -209,29 +208,27 @@ TclReturn TclStd_applyv(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
  * existing value of varName is returned.
  */
 TclReturn TclStd_set(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    TclValue *value = NULL;
     if (argc < 2) {
         return TCL_BADCMD;
     } else if (argc < 3) {
-        TclValue *value = Tcl_getVariable(vm, TclValue_str(argv[1]));
+        value = Tcl_getVariable(vm, TclValue_str(argv[1]));
         if (value) {
-            /* TclValue_set(ret, TclValue_str(value)); */
             TclValue_replace(ret, value);
         } else {
             printf("can't read \"%s\": no such variable\n", TclValue_str(argv[1]));
             return TCL_EXCEPTION;
         }
     } else {
-        TclValue *value = Tcl_getVariable(vm, TclValue_str(argv[1]));
+        value = Tcl_getVariable(vm, TclValue_str(argv[1]));
         if (value) {
-            TclValue_set(value, TclValue_str(argv[2]));
-            /* TclValue_replace(value, argv[2]); */
+	    TclValue_replace(ret, value);
+            TclValue_set(ret, TclValue_str(argv[2]));
         } else {
-            TclValue_new(&value, NULL);
-            TclValue_replace(value, argv[2]);
+	    TclValue_new_ref(&value, argv[2]);
             Tcl_addVariable_(vm, TclValue_str(argv[1]), value);
+	    TclValue_replace(ret, value);
         }
-
-        TclValue_replace(ret, value); /* set return value */
     }
     return TCL_OK;
 }
@@ -295,7 +292,6 @@ TclReturn TclStd_proc(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     Hash_get(functions, TclValue_str(argv[1]))->data = f;
 
     TclValue *fun = Tcl_register(vm, TclValue_str(argv[1]), TclStd_userFuncall);
-    TclValue_ref(fun);
     TclValue_replace(ret, fun);
 
     return TCL_OK;
@@ -945,7 +941,7 @@ void TclStd_register(Tcl *vm) {
     Tcl_register(vm, "uplevel", TclStd_uplevel);
 
     functions = Hash_malloc();
-    functions->tree.dealloc = TclStd_functions_dealloc;
+    functions->dealloc = TclStd_functions_dealloc;
 
     atexit(TclStd_cleanup);
 }

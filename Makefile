@@ -9,6 +9,7 @@ LDFLAGS += -L/usr/local/lib \
 
 CFLAGS = -Idstructs/src -Imathexpr/src -Ilineread/src \
          -I/usr/local/include \
+         -falign-functions=16 \
          $(EXTRA_CFLAGS) \
          -DWITH_LIBRARIES
 

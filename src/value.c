@@ -31,6 +31,7 @@ static void TclValue_free_value_(TclValue *value) {
         list = (List*)TclValue_ptr(value);
         List_free(list);
         break;
+    /* case TCL_VALUE_FUN: */
     default:
         break;
     }
@@ -107,10 +108,10 @@ void TclValue_detach(TclValue *value) {
 }
 
 static void List_TclValue_delete(ListNode *node) {
-    /*TclValue_delete((TclValue*)node->data);*/
+    TclValue_delete((TclValue*)node->data);
 }
 static void List_TclValue_alloc(ListNode *node, void *data) {
-    node->data = data;
+    TclValue_new_ref(&node->data, data);
 }
 void TclValue_new_list(TclValue **value) {
     TclValue_new_(value);
@@ -132,7 +133,8 @@ void TclValue_delete(TclValue *value) {
 
 void TclValue_new_ref(TclValue **value, TclValue *existing)
 {
-    TclValue_new(value, NULL);
+    TclValue_new_(value);
+    free((*value)->container);
     (*value)->container = existing->container;
     TclValue_ref(existing);
 }
@@ -204,9 +206,7 @@ void TclValue_append(TclValue *value, char *data) {
                                                  strlen(value->container->value) + strlen(data) + 1);
         strcat(value->container->value, data);
     } else {
-        value->container = (struct TclValueRef*)malloc(sizeof(struct TclValueRef));
-        value->container->value = strdup(data);
-        value->container->ref = 1;
+	TclValue_set(value, data);
     }
 }
 
@@ -233,9 +233,7 @@ void TclValue_list_push(TclValue *value, TclValue *v) {
     TclValue_coerce(value, TCL_VALUE_LIST);
 
     List *list = (List*)TclValue_ptr(value);
-    TclValue *n;
-    TclValue_new_ref(&n, v);
-    List_push(list, n);
+    List_push(list, v);
 }
 
 void TclValue_list_push_str(TclValue *value, char *str) {
@@ -279,7 +277,7 @@ TclValue *TclValue_list_pop(TclValue *value) {
     TclValue *ret = NULL;
     if (List_size(list) > 0) {
         ret = List_last(list)->data;
-        TclValue_ref(ret);
+        TclValue_new_ref(&ret, ret);
         List_pop(list);
     } else {
         TclValue_new(&ret, NULL);
@@ -294,7 +292,7 @@ TclValue *TclValue_list_shift(TclValue *value) {
     TclValue *ret = NULL;
     if (List_size(list) > 0) {
         ret = List_first(list)->data;
-        TclValue_ref(ret);
+        TclValue_new_ref(&ret, ret);
         List_shift(list);
     } else {
         TclValue_new(&ret, NULL);
@@ -368,6 +366,7 @@ TclValue *TclValue_coerce(TclValue *v, TclValueType new_type) {
         for (unsigned int i = 0; i < List_size(elms); i++) {
             TclValue_list_push_str(list, List_index(elms, i)->data);
         }
+	List_free(elms);
 
         TclValue_replace(v, list);
         TclValue_delete(list);
@@ -396,21 +395,21 @@ char *TclValue_str_(TclValue *v) {
     static char empty[] = "";
     static unsigned char int_buf_idx = 0;
     static char int_buf_ary[32][1024]; /* not thread safe */
+    char *int_buf = int_buf_ary[int_buf_idx];
     int_buf_idx = (int_buf_idx + 1) % 32;
-    char *int_buf = &int_buf_ary[int_buf_idx];
 
     switch (TclValue_type(v)) {
     case TCL_VALUE_INT:
-        snprintf(int_buf, sizeof(int_buf) - 1, "%i", TclValue_int(v));
+        snprintf(int_buf, sizeof(int_buf_ary[0]) - 1, "%i", TclValue_int(v));
         return int_buf;
     case TCL_VALUE_STR:
         return v->container->value;
     case TCL_VALUE_OBJ:
-        snprintf(int_buf, sizeof(int_buf) - 1, "<%s>",
+        snprintf(int_buf, sizeof(int_buf_ary[0]) - 1, "<%s>",
                  ((TclValueObject*)TclValue_ptr(v))->type_str);
         return int_buf;
     case TCL_VALUE_FUN:
-        snprintf(int_buf, sizeof(int_buf) - 1, "<FUNCTION %p>", TclValue_fun(v));
+        snprintf(int_buf, sizeof(int_buf_ary[0]) - 1, "<FUNCTION %p>", TclValue_fun(v));
         return int_buf;
     case TCL_VALUE_LIST:
         if (TclValue_list_join_(v, int_buf, sizeof(int_buf_ary[0])) < 0) {
