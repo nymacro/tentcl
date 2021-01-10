@@ -111,7 +111,7 @@ static void List_TclValue_delete(ListNode *node) {
     TclValue_delete((TclValue*)node->data);
 }
 static void List_TclValue_alloc(ListNode *node, void *data) {
-    TclValue_new_ref(&node->data, data);
+    TclValue_new_ref((TclValue**)&node->data, data);
 }
 void TclValue_new_list(TclValue **value) {
     TclValue_new_(value);

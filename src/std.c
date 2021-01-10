@@ -657,6 +657,7 @@ TclReturn TclStd_list(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         TclValue_list_push(list, argv[i]);
     }
     TclValue_replace(ret, list);
+    TclValue_delete(list);
 
     return TCL_OK;
 }

@@ -69,7 +69,29 @@ err:
     return ret_code;
 }
 
+TclReturn TclRegexp_match(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
+    TclReturn ret_code = TCL_OK;
+    if (argc < 3) {
+        return TCL_EXCEPTION;
+    }
+
+    ret_code = TclRegexp_regexp(vm, argc, argv, ret);
+    if (ret_code != TCL_OK)
+	goto err;
+
+    if (TclValue_null(ret)) {
+	TclValue_set_int(ret, 0);
+    } else {
+	TclValue_set_int(ret, 1);
+    }
+
+err:
+    return ret_code;
+}
+
+
 void TclRegexp_register(Tcl *vm) {
     Tcl_register(vm, "regexp", TclRegexp_regexp);
+    Tcl_register(vm, "match", TclRegexp_match);
     return;
 }

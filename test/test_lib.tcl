@@ -40,8 +40,14 @@ proc eval_catch_pending {test_body} {
 }
 
 proc test {test_name test_body} {
-    puts "t $test_name"
-    eval_catch $test_body
+    upvar args args
+    if {[match $args $test_name]} {
+	puts "t $test_name"
+	eval_catch $test_body
+    } else {
+	puts "s $test_name"
+	incr_skipped
+    }
 }
 
 proc pending {test_name test_body} {

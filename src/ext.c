@@ -297,7 +297,6 @@ static void label_free(TclValueObject *obj) {
     free(obj->ptr);
 }
 
-/* this doesn't work due to setjmp returning before you can longjmp */
 TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     TclReturn status = TCL_OK;
     TclValue *obj;
@@ -317,6 +316,7 @@ TclReturn TclStd_label(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
 
     /* invalidate the label */
     TclValue_set_null(obj);
+    /* TODO cleanup things propertly */
 
     return status;
 }
@@ -394,6 +394,7 @@ TclReturn TclStd_take(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
 
     TclValue_replace(ret, result);
+    TclValue_delete(result);
 
     return TCL_OK;
 }
@@ -420,6 +421,7 @@ TclReturn TclStd_drop(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
 
     TclValue_replace(ret, result);
+    TclValue_delete(result);
 
     return TCL_OK;
 }
@@ -460,6 +462,7 @@ TclReturn TclExt_expand(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
     }
 
     TclValue_replace(ret, list);
+    TclValue_delete(list);
     if (r) TclValue_delete(r);
 
     return status;
@@ -480,6 +483,7 @@ TclReturn TclExt_escape(Tcl *vm, int argc, TclValue *argv[], TclValue *ret) {
         TclValue_delete(r);
     }
     TclValue_replace(ret, list);
+    TclValue_delete(list);
     return TCL_OK;
 }
 

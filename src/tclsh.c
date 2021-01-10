@@ -91,7 +91,7 @@ void usage(void) {
 
 int main(int argc, char *argv[]) {
     TclReturn status = TCL_OK;
-    TclValue *ret;
+    TclValue *ret = NULL;
 
     /* Initialize tentcl */
     Tcl_new(&tcl);
@@ -134,6 +134,8 @@ int main(int argc, char *argv[]) {
         case 'e':
             status = Tcl_eval(&tcl, optarg, ret);
             break;
+	case 'v':
+	    break;
         case 'I':
             status = evalFile(optarg);
             if (status != TCL_OK) {
@@ -143,27 +145,31 @@ int main(int argc, char *argv[]) {
             break;
         case 'h':
             usage();
-            exit(0);
-            break;
+            goto err;
         default:
             usage();
-            exit(1);
-            break;
+	    status=1;
+	    goto err;
         }
     }
 
     if (optind < argc) {
         /* Script mode */
-        while (optind < argc) {
-            if (strcmp(argv[optind], "-") == 0) {
-                status = TclRepl_repl(&tcl, stdin);
-            } else {
-                status = evalFile(argv[optind]);
-            }
-            optind++;
-            if (status != TCL_OK)
-                break;
-        }
+
+	/* Set up command-line args for interpreter */
+	TclValue *args = NULL;
+	TclValue_new(&args, NULL);
+	for (int i = optind+1; i < argc; i++) {
+	    TclValue_append(args, argv[i]);
+	}
+	Tcl_addVariable_(&tcl, "args", args);
+
+	if (strcmp(argv[optind], "-") == 0) {
+	    status = TclRepl_repl(&tcl, stdin);
+	} else {
+	    status = evalFile(argv[optind]);
+	}
+	optind++;
     } else {
         /* Interactive mode */
         about();
@@ -173,5 +179,9 @@ int main(int argc, char *argv[]) {
 
     if (status != TCL_OK && status != TCL_EXIT)
         fprintf(stderr, "Error: %s", Tcl_returnString(status));
+
+ err:
+    if (ret)
+	TclValue_delete(ret);
     return Tcl_statusToCode(status);
 }
